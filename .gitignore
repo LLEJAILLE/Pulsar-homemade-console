@@ -86,3 +86,6 @@ CMakeLists.txt.user*
 src/library/nds/*.nds
 *.gba
 src/library/gba/*.gba
+*.sav
+src/library/gba/*.sav
+src/library/nds/*.sav
