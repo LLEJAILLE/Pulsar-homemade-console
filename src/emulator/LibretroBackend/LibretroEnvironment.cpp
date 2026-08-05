@@ -1,11 +1,10 @@
 #include "LibretroEnvironment.h"
 
-#include <QCoreApplication>
+#include "utils/Paths.h"
+
 #include <QDir>
 #include "Libretro.h"
 
-QString LibretroEnvironment::systemDirectory;
-QString LibretroEnvironment::saveDirectory;
 retro_pixel_format LibretroEnvironment::m_pixelFormat = RETRO_PIXEL_FORMAT_XRGB8888;
 
 retro_pixel_format LibretroEnvironment::pixelFormat()
@@ -30,14 +29,9 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
 
     case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
     {
-        if (systemDirectory.isEmpty()) {
-            systemDirectory =
-                QCoreApplication::applicationDirPath() + "/system";
-        }
-
         static QByteArray systemDir;
 
-        systemDir = QDir::toNativeSeparators(systemDirectory).toLocal8Bit();
+        systemDir = QDir::toNativeSeparators(Paths::system()).toLocal8Bit();
         *static_cast<const char**>(data) = systemDir.constData();
         return true;
     }

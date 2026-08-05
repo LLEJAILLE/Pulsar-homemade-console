@@ -2,7 +2,10 @@
 
 #include "../widgets/BackgroundWidget.h"
 
+#include "utils/Paths.h"
+
 #include <QGraphicsOpacityEffect>
+#include <QDir>
 #include <QLabel>
 #include <QPixmap>
 #include <QPropertyAnimation>
@@ -40,7 +43,7 @@ SplashScreen::SplashScreen(QWidget *parent)
     m_logoOpacity->setOpacity(0.0);
     m_logoLabel->setGraphicsEffect(m_logoOpacity);
 
-    m_logoPixmap = QPixmap(QStringLiteral("assets/img/logo.png"));
+    m_logoPixmap = QPixmap(QDir(Paths::img()).filePath(QStringLiteral("logo.png")));
     updateLogoPixmap();
 
     layout->addWidget(m_logoLabel, 0, Qt::AlignCenter);

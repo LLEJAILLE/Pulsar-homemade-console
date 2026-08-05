@@ -96,7 +96,7 @@ EmulatorPage::EmulatorPage(const Game &game, QWidget *parent) : QWidget(parent),
 
     EmulatorManager &emulator = EmulatorManager::instance();
     emulator.initialize(m_game.console);
-    emulator.loadRom(QString::fromStdString(m_game.romPath.string()));
+    emulator.loadRom(QString::fromUtf8(m_game.romPath.u8string().c_str()));
 
     m_emulatorTimer = new QTimer(this);
     m_emulatorTimer->setTimerType(Qt::PreciseTimer);

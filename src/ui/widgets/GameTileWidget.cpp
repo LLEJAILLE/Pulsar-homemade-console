@@ -1,6 +1,8 @@
 #include "GameTileWidget.h"
 
-#include <QCoreApplication>
+#include "utils/Paths.h"
+
+#include <QDir>
 #include <QFile>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -61,17 +63,11 @@ void GameTileWidget::setTileSize(int size)
 
 QPixmap GameTileWidget::loadCover(const QString& gameName)
 {
-    QString path =
-        QCoreApplication::applicationDirPath()
-        + "/../assets/icons/"
-        + gameName
-        + ".png";
+    QString path = QDir(Paths::icons()).filePath(gameName + QStringLiteral(".png"));
 
     if (!QFile::exists(path))
     {
-        path =
-            QCoreApplication::applicationDirPath()
-            + "/../assets/icons/placeholder.png";
+        path = QDir(Paths::icons()).filePath(QStringLiteral("placeholder.png"));
     }
 
     QPixmap source(path);

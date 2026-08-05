@@ -1,5 +1,9 @@
 #include "CoreRegistry.h"
 
+#include "utils/Paths.h"
+
+#include <QDir>
+
 namespace
 {
 CoreDescriptor makeMelonDsDescriptor()
@@ -8,13 +12,13 @@ CoreDescriptor makeMelonDsDescriptor()
     return {
         ConsoleType::NDS,
         QStringLiteral("melonDS"),
-        QStringLiteral("src/core/melondsds_libretro-win32-x86_64/melondsds_libretro.dll")
+        QDir(Paths::cores()).filePath(QStringLiteral("melondsds_libretro-win32-x86_64/melondsds_libretro.dll"))
     };
 #else
     return {
         ConsoleType::NDS,
         QStringLiteral("melonDS"),
-        QStringLiteral("src/core/melondsds_libretro-linux-x86_64/melondsds_libretro.so")
+        QDir(Paths::cores()).filePath(QStringLiteral("melondsds_libretro-linux-x86_64/melondsds_libretro.so"))
     };
 #endif
 }
@@ -25,13 +29,13 @@ CoreDescriptor makeMGbaDescriptor()
     return {
         ConsoleType::GBA,
         QStringLiteral("mGBA"),
-        QStringLiteral("src/core/mGBA_libretro-win32-x86_64/mgba_libretro.dll")
+        QDir(Paths::cores()).filePath(QStringLiteral("mGBA_libretro-win32-x86_64/mgba_libretro.dll"))
     };
 #else
     return {
         ConsoleType::GBA,
         QStringLiteral("mGBA"),
-        QStringLiteral("src/core/mGBA_libretro-linux-x86_64/mgba_libretro.so")
+        QDir(Paths::cores()).filePath(QStringLiteral("mGBA_libretro-linux-x86_64/mgba_libretro.so"))
     };
 #endif
 }

@@ -9,7 +9,5 @@ class LibretroEnvironment
         static retro_pixel_format pixelFormat();
 
     private:
-        static QString systemDirectory;
-        static QString saveDirectory;
         static retro_pixel_format m_pixelFormat;
 };

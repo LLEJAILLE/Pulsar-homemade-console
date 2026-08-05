@@ -14,6 +14,8 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia)
 
 set(PROJECT_SOURCES
     src/main.cpp
+    src/utils/Paths.cpp
+    src/utils/Paths.h
     src/input/InputManager.cpp
     src/input/InputManager.h
     src/emulator/EmulatorManager.cpp

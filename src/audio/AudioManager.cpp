@@ -1,7 +1,9 @@
 #include "AudioManager.h"
 
+#include "utils/Paths.h"
+
 #include <QEventLoop>
-#include <QCoreApplication>
+#include <QDir>
 #include <QTimer>
 #include <QUrl>
 
@@ -53,10 +55,7 @@ AudioManager::AudioManager()
 
 void AudioManager::loadSound(QSoundEffect& sound, const QString& filename)
 {
-    const QString path =
-        QCoreApplication::applicationDirPath()
-        + "/../assets/audio/"
-        + filename;
+    const QString path = QDir(Paths::audio()).filePath(filename);
 
     sound.setSource(QUrl::fromLocalFile(path));
     sound.setVolume(m_volume);
@@ -123,9 +122,7 @@ void AudioManager::playHomeMusic()
         return;
     }
 
-    const QString path =
-        QCoreApplication::applicationDirPath()
-        + "/../assets/audio/soundtrackmenu.wav";
+    const QString path = QDir(Paths::audio()).filePath(QStringLiteral("soundtrackmenu.wav"));
 
     if (m_musicPlayer.source().toLocalFile() != path) {
         m_musicPlayer.setSource(QUrl::fromLocalFile(path));
