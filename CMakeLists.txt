@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
+set(PULSAR_ASSETS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+set(PULSAR_CORE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/core")
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Multimedia)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia)
 
@@ -85,6 +88,19 @@ target_include_directories(Pulsar PRIVATE
 target_link_libraries(Pulsar PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Multimedia
+)
+
+file(COPY "${PULSAR_ASSETS_SOURCE_DIR}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${PULSAR_CORE_SOURCE_DIR}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src")
+
+add_custom_command(TARGET Pulsar POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${PULSAR_ASSETS_SOURCE_DIR}"
+            "$<TARGET_FILE_DIR:Pulsar>/assets"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${PULSAR_CORE_SOURCE_DIR}"
+            "$<TARGET_FILE_DIR:Pulsar>/src/core"
+    COMMENT "Copying runtime assets and libretro cores"
 )
 
 set_target_properties(Pulsar PROPERTIES

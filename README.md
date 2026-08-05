@@ -297,7 +297,16 @@ if ($LASTEXITCODE -ne 0) {
 & ".\build\Pulsar.exe"
 ```
 
-This is the current Windows build path. Linux support is not wired up yet, so the project currently targets Windows builds first.
+Windows still works with `run.ps1`, and Linux is now covered with `install-deps.sh` plus `run.sh`.
+
+### Linux
+
+On Ubuntu or Debian, install the dependencies first, then build and run the project:
+
+```bash
+./install-deps.sh
+./run.sh
+```
 
 ## Project Layout
 

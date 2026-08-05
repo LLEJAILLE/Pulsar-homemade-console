@@ -1,6 +1,6 @@
 #include <QString>
 
-#include "libretro.h"
+#include "Libretro.h"
 
 class LibretroEnvironment
 {

@@ -2,7 +2,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
-#include "libretro.h"
+#include "Libretro.h"
 
 QString LibretroEnvironment::systemDirectory;
 QString LibretroEnvironment::saveDirectory;

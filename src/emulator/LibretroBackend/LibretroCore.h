@@ -3,7 +3,7 @@
 #include <QString>
 #include <QByteArray>
 
-#include "./libretro.h"
+#include "Libretro.h"
 #include "LibretroEnvironment.h"
 
 class LibretroCore

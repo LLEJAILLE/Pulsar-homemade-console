@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libretro.h"
+#include "Libretro.h"
 
 class LibretroInput
 {

@@ -3,7 +3,7 @@
 #include "LibretroVideo.h"
 #include "../../input/InputManager.h"
 
-#include "libretro.h"
+#include "Libretro.h"
 #include <algorithm>
 #include <cmath>
 
