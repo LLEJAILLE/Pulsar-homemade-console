@@ -19,12 +19,14 @@ public:
         Right,
         L,
         R,
+        Menu,
     };
 
-    static constexpr std::size_t kButtonCount = static_cast<std::size_t>(Button::R) + 1;
+    static constexpr std::size_t kButtonCount = static_cast<std::size_t>(Button::Menu) + 1;
 
     static void setButton(Button button, bool pressed);
     static bool button(Button button);
+    static void clearButtons();
 
     static void pressTouch(int x, int y);
     static void moveTouch(int x, int y);

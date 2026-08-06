@@ -1,6 +1,6 @@
 #include "InputManager.h"
 
-std::array<std::atomic<bool>, 10> InputManager::s_buttons{};
+std::array<std::atomic<bool>, InputManager::kButtonCount> InputManager::s_buttons{};
 std::atomic<bool> InputManager::s_touchPressed{false};
 std::atomic<int> InputManager::s_touchX{0};
 std::atomic<int> InputManager::s_touchY{0};
@@ -18,6 +18,13 @@ void InputManager::setButton(Button button, bool pressed)
 bool InputManager::button(Button button)
 {
     return s_buttons[indexOf(button)].load(std::memory_order_relaxed);
+}
+
+void InputManager::clearButtons()
+{
+    for (auto &buttonState : s_buttons) {
+        buttonState.store(false, std::memory_order_relaxed);
+    }
 }
 
 void InputManager::pressTouch(int x, int y)

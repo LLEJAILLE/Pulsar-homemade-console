@@ -2,9 +2,11 @@
 
 #include <QAudioFormat>
 #include <QMediaDevices>
+#include <algorithm>
 
 QAudioSink* LibretroAudio::m_audioSink = nullptr;
 QIODevice* LibretroAudio::m_outputDevice = nullptr;
+float LibretroAudio::m_volume = 0.75f;
 
 void LibretroAudio::initialize(unsigned sampleRate)
 {
@@ -16,6 +18,7 @@ void LibretroAudio::initialize(unsigned sampleRate)
     format.setSampleFormat(QAudioFormat::Int16);
 
     m_audioSink = new QAudioSink(QMediaDevices::defaultAudioOutput(), format);
+    m_audioSink->setVolume(m_volume);
 
     m_audioSink->setBufferSize(8192);
 
@@ -52,4 +55,18 @@ size_t LibretroAudio::pushSamples(const int16_t* data, size_t frames)
         bytes);
 
     return frames;
+}
+
+void LibretroAudio::setVolume(float volume)
+{
+    m_volume = std::clamp(volume, 0.0f, 1.0f);
+
+    if (m_audioSink) {
+        m_audioSink->setVolume(m_volume);
+    }
+}
+
+float LibretroAudio::volume()
+{
+    return m_volume;
 }
