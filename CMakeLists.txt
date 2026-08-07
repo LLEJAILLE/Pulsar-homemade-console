@@ -16,6 +16,8 @@ set(PROJECT_SOURCES
     src/main.cpp
     src/utils/Paths.cpp
     src/utils/Paths.h
+    src/utils/FrameTimingProfiler.cpp
+    src/utils/FrameTimingProfiler.h
     src/input/InputManager.cpp
     src/input/InputManager.h
     src/emulator/EmulatorManager.cpp

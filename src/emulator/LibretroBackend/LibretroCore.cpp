@@ -3,6 +3,7 @@
 #include "LibretroInput.h"
 #include "LibretroTouch.h"
 #include "LibretroAudio.h"
+#include "utils/FrameTimingProfiler.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -254,8 +255,10 @@ bool LibretroCore::loadGame(const QString& romPath)
 
 void LibretroCore::runFrame()
 {
-    if (retro_run)
+    if (retro_run) {
+        FrameTimingProfiler::ScopedTimer timer(FrameTimingProfiler::Stage::RetroRun);
         retro_run();
+    }
 }
 
 bool LibretroCore::saveGame(const QString& savepath)

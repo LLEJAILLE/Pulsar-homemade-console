@@ -1,6 +1,7 @@
 #include "EmulatorScreenWidget.h"
 #include "../../emulator/LibretroBackend/LibretroVideo.h"
 #include "../../input/InputManager.h"
+#include "../../utils/FrameTimingProfiler.h"
 
 #include <algorithm>
 #include <QPainter>
@@ -44,27 +45,40 @@ bool EmulatorScreenWidget::isActiveScreen() const
 void EmulatorScreenWidget::paintEvent(QPaintEvent*)
 {
     QPainter painter(this);
-    painter.fillRect(rect(), Qt::black);
 
     if (!isActiveScreen()) {
+        FrameTimingProfiler::ScopedTimer renderingTimer(FrameTimingProfiler::Stage::Rendering);
+        painter.fillRect(rect(), Qt::black);
+        FrameTimingProfiler::notePaintCompleted();
         return;
     }
 
-    const QImage screen = LibretroVideo::screenForIndex(m_screenIndex, m_profile.screenCount());
+    QImage screen;
+    {
+        FrameTimingProfiler::ScopedTimer framebufferTimer(FrameTimingProfiler::Stage::Framebuffer);
+        screen = LibretroVideo::screenForIndex(m_screenIndex, m_profile.screenCount());
+    }
 
-    if (!screen.isNull()) {
-        if (m_profile.screenCount() <= 1) {
-            QSize targetSize = screen.size();
-            targetSize.scale(size(), Qt::KeepAspectRatio);
+    {
+        FrameTimingProfiler::ScopedTimer renderingTimer(FrameTimingProfiler::Stage::Rendering);
+        painter.fillRect(rect(), Qt::black);
 
-            QRect target(QPoint(0, 0), targetSize);
-            target.moveCenter(rect().center());
+        if (!screen.isNull()) {
+            if (m_profile.screenCount() <= 1) {
+                QSize targetSize = screen.size();
+                targetSize.scale(size(), Qt::KeepAspectRatio);
 
-            painter.drawImage(target, screen);
-        } else {
-            painter.drawImage(rect(), screen);
+                QRect target(QPoint(0, 0), targetSize);
+                target.moveCenter(rect().center());
+
+                painter.drawImage(target, screen);
+            } else {
+                painter.drawImage(rect(), screen);
+            }
         }
     }
+
+    FrameTimingProfiler::notePaintCompleted();
 }
 
 void EmulatorScreenWidget::mousePressEvent(QMouseEvent* event)

@@ -1,4 +1,5 @@
 #include "LibretroAudio.h"
+#include "utils/FrameTimingProfiler.h"
 
 #include <QAudioFormat>
 #include <QMediaDevices>
@@ -38,7 +39,8 @@ void LibretroAudio::shutdown()
 
 size_t LibretroAudio::pushSamples(const int16_t* data, size_t frames)
 {
-    
+    FrameTimingProfiler::ScopedTimer timer(FrameTimingProfiler::Stage::Audio);
+
     if (!m_outputDevice)
         return 0;
     

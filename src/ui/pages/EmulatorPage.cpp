@@ -12,6 +12,7 @@
 #include "emulator/EmulatorManager.h"
 #include "emulator/LibretroBackend/LibretroAudio.h"
 #include "input/InputManager.h"
+#include "utils/FrameTimingProfiler.h"
 
 #include <algorithm>
 #include <functional>
@@ -123,14 +124,19 @@ EmulatorPage::EmulatorPage(const Game &game, QWidget *parent) : QWidget(parent) 
     layout->addWidget(m_topScreen);
     layout->addWidget(m_bottomScreen);
 
+    const unsigned expectedPaintEvents = 2u;
+
     EmulatorManager &emulator = EmulatorManager::instance();
     emulator.initialize(m_game.console);
     emulator.loadRom(QString::fromUtf8(m_game.romPath.u8string().c_str()));
 
     m_emulatorTimer = new QTimer(this);
     m_emulatorTimer->setTimerType(Qt::PreciseTimer);
-    connect(m_emulatorTimer, &QTimer::timeout, this, [this, &emulator]()
+    connect(m_emulatorTimer, &QTimer::timeout, this, [this, &emulator, expectedPaintEvents]()
     {
+        FrameTimingProfiler::beginFrame(expectedPaintEvents);
+
+        FrameTimingProfiler::ScopedTimer inputTimer(FrameTimingProfiler::Stage::Input);
         const bool menuPressed = InputManager::button(InputManager::Button::Menu);
         if (menuPressed && !m_menuButtonLatch) {
             m_menuButtonLatch = true;
