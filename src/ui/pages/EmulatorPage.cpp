@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <functional>
 #include <utility>
+#include <iostream>
 
 namespace
 {
@@ -33,12 +34,22 @@ void setButtonFromQtKey(int qtKey, bool pressed)
 {
     switch (qtKey)
     {
-        case Qt::Key_A:
+        case Qt::Key_Z:
             InputManager::setButton(InputManager::Button::A, pressed);
             break;
 
-        case Qt::Key_S:
+        case Qt::Key_D:
             InputManager::setButton(InputManager::Button::B, pressed);
+            break;
+
+        case Qt::Key_S:
+            InputManager::setButton(InputManager::Button::X, pressed);
+            std::cout << "X button pressed: " << pressed << std::endl;
+            break;
+
+        case Qt::Key_Q:
+            InputManager::setButton(InputManager::Button::Y, pressed);
+            std::cout << "Y button pressed: " << pressed << std::endl;
             break;
 
         case Qt::Key_Control:
@@ -95,9 +106,7 @@ const char *kEmulatorPageStyle = R"(
 )";
 }
 
-EmulatorPage::EmulatorPage(const Game &game, QWidget *parent)
-    : QWidget(parent)
-    , m_game(game)
+EmulatorPage::EmulatorPage(const Game &game, QWidget *parent) : QWidget(parent) , m_game(game)
 {
     setObjectName(QStringLiteral("EmulatorPage"));
     setStyleSheet(QString::fromLatin1(kEmulatorPageStyle));

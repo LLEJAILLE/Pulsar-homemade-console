@@ -11,6 +11,8 @@ public:
     {
         A = 0,
         B,
+        X,
+        Y,
         Start,
         Select,
         Up,

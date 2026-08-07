@@ -16,6 +16,14 @@ bool mapLibretroButton(unsigned id, InputManager::Button &button)
             button = InputManager::Button::B;
             return true;
 
+        case RETRO_DEVICE_ID_JOYPAD_X:
+            button = InputManager::Button::X;
+            return true;
+
+        case RETRO_DEVICE_ID_JOYPAD_Y:
+            button = InputManager::Button::Y;
+            return true;
+
         case RETRO_DEVICE_ID_JOYPAD_START:
             button = InputManager::Button::Start;
             return true;
