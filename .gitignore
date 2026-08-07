@@ -89,3 +89,5 @@ src/library/gba/*.gba
 *.sav
 src/library/gba/*.sav
 src/library/nds/*.sav
+*3ds
+src/library/3ds/*.3ds
