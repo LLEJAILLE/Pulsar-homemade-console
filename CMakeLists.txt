@@ -51,8 +51,12 @@ set(PROJECT_SOURCES
     src/ui/pages/SplashScreen.h
     src/ui/pages/BottomHomePage.cpp
     src/ui/pages/BottomHomePage.h
+    src/ui/pages/BottomSettingsPage.cpp
+    src/ui/pages/BottomSettingsPage.h
         src/ui/pages/TopHomePage.cpp
         src/ui/pages/TopHomePage.h
+        src/ui/pages/TopSettingsPage.cpp
+        src/ui/pages/TopSettingsPage.h
     src/ui/pages/EmulatorPage.cpp
     src/ui/screens/TopScreen.cpp
     src/ui/screens/TopScreen.h

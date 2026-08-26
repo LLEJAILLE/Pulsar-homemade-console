@@ -125,6 +125,11 @@ void BottomHomePage::setCurrentIndex(int newIndex)
     m_currentIndex = std::clamp(newIndex, 0, static_cast<int>(m_tiles.size()) - 1);
     updateSelection();
 
+    if (m_currentIndex == m_settingsIndex) {
+        emit selectedGameChanged(QStringLiteral("Settings"));
+        return;
+    }
+
     if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_gameTitles.size())) {
         emit selectedGameChanged(m_gameTitles[static_cast<std::size_t>(m_currentIndex)]);
     }
@@ -191,7 +196,9 @@ void BottomHomePage::keyPressEvent(QKeyEvent *event)
 
     case Qt::Key_Space:
     case Qt::Key_A:
-        if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_games.size())) {
+        if (m_currentIndex == m_settingsIndex) {
+            emit openSettingsRequested();
+        } else if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_games.size())) {
             emit launchGame(m_games[m_currentIndex]);
         }
         event->accept();
@@ -305,6 +312,13 @@ BottomHomePage::BottomHomePage(const std::vector<Game> &games, QWidget *parent) 
         m_tiles.push_back(tile);
         m_gamesLayout->addWidget(tile);
     }
+
+    Game settingsGame;
+    settingsGame.title = "settings";
+    auto *settingsTile = new GameTileWidget(settingsGame, m_container);
+    m_tiles.push_back(settingsTile);
+    m_gamesLayout->addWidget(settingsTile);
+    m_settingsIndex = static_cast<int>(m_tiles.size()) - 1;
 
     if (!m_tiles.empty()) {
         setCurrentIndex(0);

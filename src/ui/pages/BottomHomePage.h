@@ -29,6 +29,7 @@ public:
 signals:
     void selectedGameChanged(const QString &gameTitle);
     void launchGame(const Game &game);
+    void openSettingsRequested();
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -58,6 +59,7 @@ private:
     std::vector<QString> m_gameTitles;
     std::vector<Game> m_games;
     int m_currentIndex = -1;
+    int m_settingsIndex = -1;
 
     BackgroundWidget* m_background = nullptr;
     QWidget* m_overlay = nullptr;

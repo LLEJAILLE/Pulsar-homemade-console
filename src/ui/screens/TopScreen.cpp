@@ -1,6 +1,7 @@
 #include "TopScreen.h"
 
 #include "../pages/TopHomePage.h"
+#include "../pages/TopSettingsPage.h"
 #include "../pages/SplashScreen.h"
 #include "../../utils/env.hpp"
 
@@ -43,6 +44,8 @@ void TopScreen::loadPage(Page page)
         m_pageWidget = new SplashScreen(this);
     } else if (page == Page::Home) {
         m_pageWidget = new TopHomePage(m_gameTitle, this);
+    } else if (page == Page::Settings) {
+        m_pageWidget = new TopSettingsPage(m_settingsStatus, this);
     } else {
         auto *placeholder = new QLabel(QStringLiteral("Page not implemented yet"), this);
         placeholder->setAlignment(Qt::AlignCenter);
@@ -62,6 +65,21 @@ void TopScreen::setGameTitle(const QString &gameTitle)
 
     if (auto *homePage = qobject_cast<TopHomePage *>(m_pageWidget)) {
         homePage->setGameTitle(m_gameTitle);
+    }
+
+    update();
+}
+
+void TopScreen::setSettingsStatus(const QString &statusMessage)
+{
+    if (m_settingsStatus == statusMessage) {
+        return;
+    }
+
+    m_settingsStatus = statusMessage;
+
+    if (auto *settingsPage = qobject_cast<TopSettingsPage *>(m_pageWidget)) {
+        settingsPage->setStatusMessage(m_settingsStatus);
     }
 
     update();

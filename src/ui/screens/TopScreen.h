@@ -16,6 +16,7 @@ public:
 
     void loadPage(Page page);
     void setGameTitle(const QString &gameTitle);
+    void setSettingsStatus(const QString &statusMessage);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -24,5 +25,6 @@ private:
     QVBoxLayout *m_layout = nullptr;
     Page m_currentPage = Page::Home;
     QString m_gameTitle;
+    QString m_settingsStatus;
     QWidget *m_pageWidget = nullptr;
 };

@@ -26,5 +26,9 @@ private:
     Game *m_currentGame = nullptr;
 
     void launchGame(const Game &game);
+    void openSettings();
     void backToHome();
+    void reloadLibrary();
+    void bindHomeSignals();
+    void bindSettingsSignals();
 };
