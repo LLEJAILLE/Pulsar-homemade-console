@@ -2,71 +2,69 @@
 
 #include "../../input/InputManager.h"
 
+#include <array>
+#include <chrono>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+
 namespace
 {
-bool mapLibretroButton(unsigned id, InputManager::Button &button)
+struct ButtonMapEntry
 {
-    switch (id)
-    {
-        case RETRO_DEVICE_ID_JOYPAD_A:
-            button = InputManager::Button::A;
-            return true;
+    unsigned libretroId;
+    InputManager::Button button;
+};
 
-        case RETRO_DEVICE_ID_JOYPAD_B:
-            button = InputManager::Button::B;
-            return true;
+constexpr std::array<ButtonMapEntry, 12> kButtonMap = {{
+    { RETRO_DEVICE_ID_JOYPAD_A, InputManager::Button::A },
+    { RETRO_DEVICE_ID_JOYPAD_B, InputManager::Button::B },
+    { RETRO_DEVICE_ID_JOYPAD_X, InputManager::Button::X },
+    { RETRO_DEVICE_ID_JOYPAD_Y, InputManager::Button::Y },
+    { RETRO_DEVICE_ID_JOYPAD_START, InputManager::Button::Start },
+    { RETRO_DEVICE_ID_JOYPAD_SELECT, InputManager::Button::Select },
+    { RETRO_DEVICE_ID_JOYPAD_UP, InputManager::Button::Up },
+    { RETRO_DEVICE_ID_JOYPAD_DOWN, InputManager::Button::Down },
+    { RETRO_DEVICE_ID_JOYPAD_LEFT, InputManager::Button::Left },
+    { RETRO_DEVICE_ID_JOYPAD_RIGHT, InputManager::Button::Right },
+    { RETRO_DEVICE_ID_JOYPAD_L, InputManager::Button::L },
+    { RETRO_DEVICE_ID_JOYPAD_R, InputManager::Button::R },
+}};
 
-        case RETRO_DEVICE_ID_JOYPAD_X:
-            button = InputManager::Button::X;
-            return true;
-
-        case RETRO_DEVICE_ID_JOYPAD_Y:
-            button = InputManager::Button::Y;
-            return true;
-
-        case RETRO_DEVICE_ID_JOYPAD_START:
-            button = InputManager::Button::Start;
-            return true;
-
-        case RETRO_DEVICE_ID_JOYPAD_SELECT:
-            button = InputManager::Button::Select;
-            return true;
-
-        case RETRO_DEVICE_ID_JOYPAD_UP:
-            button = InputManager::Button::Up;
-            return true;
-
-        case RETRO_DEVICE_ID_JOYPAD_DOWN:
-            button = InputManager::Button::Down;
-            return true;
-
-        case RETRO_DEVICE_ID_JOYPAD_LEFT:
-            button = InputManager::Button::Left;
-            return true;
-
-        case RETRO_DEVICE_ID_JOYPAD_RIGHT:
-            button = InputManager::Button::Right;
-            return true;
-
-        case RETRO_DEVICE_ID_JOYPAD_L:
-            button = InputManager::Button::L;
-            return true;
-
-        case RETRO_DEVICE_ID_JOYPAD_R:
-            button = InputManager::Button::R;
-            return true;
-
-        default:
-            return false;
-    }
+bool profileInputTiming()
+{
+    static const bool enabled = []() {
+        const char* env = std::getenv("PULSAR_LIBRETRO_PROFILE");
+        return env && std::strcmp(env, "0") != 0;
+    }();
+    return enabled;
 }
 }
 
 int16_t LibretroInput::state(unsigned id)
 {
-    InputManager::Button button;
-    if (!mapLibretroButton(id, button))
-        return 0;
+    const auto start = std::chrono::steady_clock::now();
 
-    return InputManager::button(button) ? 1 : 0;
+    for (const auto& entry : kButtonMap) {
+        if (entry.libretroId == id) {
+            const int16_t value = InputManager::button(entry.button) ? 1 : 0;
+
+            if (profileInputTiming()) {
+                static std::atomic<std::uint64_t> calls{0};
+                static std::atomic<std::uint64_t> totalNs{0};
+                const auto end = std::chrono::steady_clock::now();
+                const auto durationNs = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+                calls.fetch_add(1, std::memory_order_relaxed);
+                totalNs.fetch_add(static_cast<std::uint64_t>(durationNs), std::memory_order_relaxed);
+                if ((calls.load(std::memory_order_relaxed) % 256u) == 0u) {
+                    const double avgUs = static_cast<double>(totalNs.load(std::memory_order_relaxed)) / 1000.0 / static_cast<double>(calls.load(std::memory_order_relaxed));
+                    std::cout << "[libretro input avg] " << avgUs << " us" << std::endl;
+                }
+            }
+
+            return value;
+        }
+    }
+
+    return 0;
 }

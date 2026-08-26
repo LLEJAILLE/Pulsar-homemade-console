@@ -7,44 +7,152 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <atomic>
+#include <chrono>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 namespace
 {
-    void videoRefreshCallback(const void* data, unsigned width, unsigned height, size_t pitch)
-    {
-        LibretroVideo::videoRefresh( data, width, height, pitch);
+struct CallbackStats
+{
+    std::atomic<std::uint64_t> calls{0};
+    std::atomic<std::uint64_t> totalNs{0};
+};
+
+bool profileEnabled()
+{
+    static const bool enabled = []() {
+        const char* env = std::getenv("PULSAR_LIBRETRO_PROFILE");
+        return env && std::strcmp(env, "0") != 0;
+    }();
+    return enabled;
+}
+
+void printStatsIfNeeded(const char* name, CallbackStats& stats)
+{
+    if (!profileEnabled()) {
+        return;
     }
 
-    void audioSampleCallback(int16_t left, int16_t right)
-    {
-        int16_t sample[2] = { left, right };
+    const auto calls = stats.calls.load(std::memory_order_relaxed);
+    if (calls == 0 || (calls % 256u) != 0u) {
+        return;
+    }
+
+    const auto totalNs = stats.totalNs.load(std::memory_order_relaxed);
+    const double avgUs = static_cast<double>(totalNs) / 1000.0 / static_cast<double>(calls);
+    std::cout << "[libretro profile] " << name << " avg=" << avgUs << " us over " << calls << " calls" << std::endl;
+}
+
+CallbackStats& videoStats()
+{
+    static CallbackStats stats;
+    return stats;
+}
+
+CallbackStats& audioStats()
+{
+    static CallbackStats stats;
+    return stats;
+}
+
+CallbackStats& inputStats()
+{
+    static CallbackStats stats;
+    return stats;
+}
+
+CallbackStats& runStats()
+{
+    static CallbackStats stats;
+    return stats;
+}
+
+void videoRefreshCallback(const void* data, unsigned width, unsigned height, size_t pitch)
+{
+    if (profileEnabled()) {
+        const auto start = std::chrono::steady_clock::now();
+        LibretroVideo::videoRefresh(data, width, height, pitch);
+        const auto end = std::chrono::steady_clock::now();
+        auto& stats = videoStats();
+        stats.calls.fetch_add(1, std::memory_order_relaxed);
+        stats.totalNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()), std::memory_order_relaxed);
+        printStatsIfNeeded("video_refresh", stats);
+        return;
+    }
+
+    LibretroVideo::videoRefresh(data, width, height, pitch);
+}
+
+void audioSampleCallback(int16_t left, int16_t right)
+{
+    int16_t sample[2] = { left, right };
+    if (profileEnabled()) {
+        const auto start = std::chrono::steady_clock::now();
         LibretroAudio::pushSamples(sample, 1);
+        const auto end = std::chrono::steady_clock::now();
+        auto& stats = audioStats();
+        stats.calls.fetch_add(1, std::memory_order_relaxed);
+        stats.totalNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()), std::memory_order_relaxed);
+        printStatsIfNeeded("audio_sample", stats);
+        return;
     }
 
-    size_t audioSampleBatchCallback(const int16_t* data, size_t frames)
-    {
-        return LibretroAudio::pushSamples(data, frames);
+    LibretroAudio::pushSamples(sample, 1);
+}
+
+size_t audioSampleBatchCallback(const int16_t* data, size_t frames)
+{
+    if (profileEnabled()) {
+        const auto start = std::chrono::steady_clock::now();
+        const auto result = LibretroAudio::pushSamples(data, frames);
+        const auto end = std::chrono::steady_clock::now();
+        auto& stats = audioStats();
+        stats.calls.fetch_add(1, std::memory_order_relaxed);
+        stats.totalNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()), std::memory_order_relaxed);
+        printStatsIfNeeded("audio_batch", stats);
+        return result;
     }
 
-    void inputPollCallback()
-    {
-    }
+    return LibretroAudio::pushSamples(data, frames);
+}
 
-    int16_t inputStateCallback(unsigned port, unsigned device, unsigned index, unsigned id)
-    {
-        Q_UNUSED(port)
-        Q_UNUSED(device)
-        Q_UNUSED(index)
+void inputPollCallback()
+{
+}
 
+int16_t inputStateCallback(unsigned port, unsigned device, unsigned index, unsigned id)
+{
+    Q_UNUSED(port)
+    Q_UNUSED(device)
+    Q_UNUSED(index)
+
+    if (profileEnabled()) {
+        const auto start = std::chrono::steady_clock::now();
+        int16_t result = 0;
         if (device == RETRO_DEVICE_JOYPAD)
-        return LibretroInput::state(id);
-        
-        if (device == RETRO_DEVICE_POINTER)
-            return LibretroTouch::state(device, id);
+            result = LibretroInput::state(id);
+        else if (device == RETRO_DEVICE_POINTER)
+            result = LibretroTouch::state(device, id);
 
-        return 0;
+        const auto end = std::chrono::steady_clock::now();
+        auto& stats = inputStats();
+        stats.calls.fetch_add(1, std::memory_order_relaxed);
+        stats.totalNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()), std::memory_order_relaxed);
+        printStatsIfNeeded("input_state", stats);
+        return result;
     }
+
+    if (device == RETRO_DEVICE_JOYPAD)
+        return LibretroInput::state(id);
+
+    if (device == RETRO_DEVICE_POINTER)
+        return LibretroTouch::state(device, id);
+
+    return 0;
+}
 }
 
 bool LibretroCore::load(const QString& libraryPath)
@@ -276,6 +384,18 @@ void LibretroCore::runFrame()
 {
     if (retro_run) {
         FrameTimingProfiler::ScopedTimer timer(FrameTimingProfiler::Stage::RetroRun);
+
+        if (profileEnabled()) {
+            const auto start = std::chrono::steady_clock::now();
+            retro_run();
+            const auto end = std::chrono::steady_clock::now();
+            auto& stats = runStats();
+            stats.calls.fetch_add(1, std::memory_order_relaxed);
+            stats.totalNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()), std::memory_order_relaxed);
+            printStatsIfNeeded("retro_run", stats);
+            return;
+        }
+
         retro_run();
     }
 }

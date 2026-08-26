@@ -1,0 +1,42 @@
+PULSAR_LIBRETRO_PROFILE=1 /path/to/Pulsar
+
+
+
+script compare:
+#!/bin/bash
+set -e
+
+BIN="./Pulsar"
+LOG_DIR="./logs_desmume_profile"
+mkdir -p "$LOG_DIR"
+
+run_case() {
+    local label="$1"
+    local block_size="$2"
+
+    echo "=== $label : block_size=$block_size ==="
+
+    export PULSAR_LIBRETRO_PROFILE=1
+
+    # On force la valeur du core option dans Pulsar au lancement
+    # si le core accepte l’option, la valeur ci-dessous est celle qui est utilisée
+    # pour un test manuel, remplace ou adapte selon le chemin exact de la lib.
+    # Cette variable n’est pas l’option libretro elle-même ; c’est juste un marqueur
+    # pour le script de test.
+    export PULSAR_DESMUME_JIT_BLOCK_SIZE="$block_size"
+
+    # Lancer le jeu pendant 15 s, puis tuer le processus
+    timeout 15s "$BIN" > "$LOG_DIR/${label}.log" 2>&1 || true
+
+    echo "--- moyenne sur log ---"
+    grep '\[libretro profile\]' "$LOG_DIR/${label}.log" | tail -n 20 || true
+
+    echo
+}
+
+run_case "desmume_20" 20
+run_case "desmume_30" 30
+run_case "desmume_40" 40
+
+
+
