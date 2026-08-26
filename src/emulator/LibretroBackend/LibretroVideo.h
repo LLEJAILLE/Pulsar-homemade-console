@@ -9,8 +9,6 @@ class LibretroVideo
 
         static const QImage& frame();
 
-        static QRect sourceRectForIndex(int screenIndex, int screenCount);
-
         static QImage screenForIndex(int screenIndex, int screenCount);
 
         static QImage topScreen();

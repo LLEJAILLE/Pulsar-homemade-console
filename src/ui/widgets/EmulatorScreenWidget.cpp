@@ -53,31 +53,27 @@ void EmulatorScreenWidget::paintEvent(QPaintEvent*)
         return;
     }
 
-    const QImage &frame = LibretroVideo::frame();
-    const QRect sourceRect = LibretroVideo::sourceRectForIndex(m_screenIndex, m_profile.screenCount());
+    QImage screen;
     {
         FrameTimingProfiler::ScopedTimer framebufferTimer(FrameTimingProfiler::Stage::Framebuffer);
-        if (sourceRect.isNull()) {
-            FrameTimingProfiler::notePaintCompleted();
-            return;
-        }
+        screen = LibretroVideo::screenForIndex(m_screenIndex, m_profile.screenCount());
     }
 
     {
         FrameTimingProfiler::ScopedTimer renderingTimer(FrameTimingProfiler::Stage::Rendering);
         painter.fillRect(rect(), Qt::black);
 
-        if (!frame.isNull()) {
+        if (!screen.isNull()) {
             if (m_profile.screenCount() <= 1) {
-            QSize targetSize = sourceRect.size();
+            QSize targetSize = screen.size();
                 targetSize.scale(size(), Qt::KeepAspectRatio);
 
                 QRect target(QPoint(0, 0), targetSize);
                 target.moveCenter(rect().center());
 
-                painter.drawImage(target, frame, sourceRect);
+                painter.drawImage(target, screen);
             } else {
-                painter.drawImage(rect(), frame, sourceRect);
+                painter.drawImage(rect(), screen);
             }
         }
     }

@@ -46,24 +46,20 @@ const QImage& LibretroVideo::frame()
     return m_frame;
 }
 
-QRect LibretroVideo::sourceRectForIndex(int screenIndex, int screenCount)
+QImage LibretroVideo::screenForIndex(int screenIndex, int screenCount)
 {
     if (m_frame.isNull())
         return {};
 
     if (screenCount <= 1)
-        return m_frame.rect();
+        return m_frame;
 
     const int clampedScreenCount = std::max(1, screenCount);
     const int clampedScreenIndex = std::clamp(screenIndex, 0, clampedScreenCount - 1);
     const int screenHeight = m_frame.height() / clampedScreenCount;
-    return QRect(0, clampedScreenIndex * screenHeight, m_frame.width(), screenHeight);
-}
+    const int y = clampedScreenIndex * screenHeight;
 
-QImage LibretroVideo::screenForIndex(int screenIndex, int screenCount)
-{
-    const QRect sourceRect = sourceRectForIndex(screenIndex, screenCount);
-    return sourceRect.isValid() ? m_frame.copy(sourceRect) : QImage();
+    return m_frame.copy(0, y, m_frame.width(), screenHeight);
 }
 
 QImage LibretroVideo::topScreen()

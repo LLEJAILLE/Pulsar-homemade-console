@@ -7,117 +7,23 @@
 
 #include <QFile>
 #include <QFileInfo>
-#include <atomic>
-#include <chrono>
-#include <algorithm>
-#include <cstdlib>
-#include <cstring>
 #include <iostream>
-#include <thread>
 
 namespace
 {
-struct CallbackStats
-{
-    std::atomic<std::uint64_t> calls{0};
-    std::atomic<std::uint64_t> totalNs{0};
-};
-
-bool profileEnabled()
-{
-    static const bool enabled = []() {
-        const char* env = std::getenv("PULSAR_LIBRETRO_PROFILE");
-        return env && std::strcmp(env, "0") != 0;
-    }();
-    return enabled;
-}
-
-void printStatsIfNeeded(const char* name, CallbackStats& stats)
-{
-    if (!profileEnabled()) {
-        return;
-    }
-
-    const auto calls = stats.calls.load(std::memory_order_relaxed);
-    if (calls == 0 || (calls % 256u) != 0u) {
-        return;
-    }
-
-    const auto totalNs = stats.totalNs.load(std::memory_order_relaxed);
-    const double avgUs = static_cast<double>(totalNs) / 1000.0 / static_cast<double>(calls);
-    std::cout << "[libretro profile] " << name << " avg=" << avgUs << " us over " << calls << " calls" << std::endl;
-}
-
-CallbackStats& videoStats()
-{
-    static CallbackStats stats;
-    return stats;
-}
-
-CallbackStats& audioStats()
-{
-    static CallbackStats stats;
-    return stats;
-}
-
-CallbackStats& inputStats()
-{
-    static CallbackStats stats;
-    return stats;
-}
-
-CallbackStats& runStats()
-{
-    static CallbackStats stats;
-    return stats;
-}
-
 void videoRefreshCallback(const void* data, unsigned width, unsigned height, size_t pitch)
 {
-    if (profileEnabled()) {
-        const auto start = std::chrono::steady_clock::now();
-        LibretroVideo::videoRefresh(data, width, height, pitch);
-        const auto end = std::chrono::steady_clock::now();
-        auto& stats = videoStats();
-        stats.calls.fetch_add(1, std::memory_order_relaxed);
-        stats.totalNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()), std::memory_order_relaxed);
-        printStatsIfNeeded("video_refresh", stats);
-        return;
-    }
-
     LibretroVideo::videoRefresh(data, width, height, pitch);
 }
 
 void audioSampleCallback(int16_t left, int16_t right)
 {
     int16_t sample[2] = { left, right };
-    if (profileEnabled()) {
-        const auto start = std::chrono::steady_clock::now();
-        LibretroAudio::pushSamples(sample, 1);
-        const auto end = std::chrono::steady_clock::now();
-        auto& stats = audioStats();
-        stats.calls.fetch_add(1, std::memory_order_relaxed);
-        stats.totalNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()), std::memory_order_relaxed);
-        printStatsIfNeeded("audio_sample", stats);
-        return;
-    }
-
     LibretroAudio::pushSamples(sample, 1);
 }
 
 size_t audioSampleBatchCallback(const int16_t* data, size_t frames)
 {
-    if (profileEnabled()) {
-        const auto start = std::chrono::steady_clock::now();
-        const auto result = LibretroAudio::pushSamples(data, frames);
-        const auto end = std::chrono::steady_clock::now();
-        auto& stats = audioStats();
-        stats.calls.fetch_add(1, std::memory_order_relaxed);
-        stats.totalNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()), std::memory_order_relaxed);
-        printStatsIfNeeded("audio_batch", stats);
-        return result;
-    }
-
     return LibretroAudio::pushSamples(data, frames);
 }
 
@@ -131,22 +37,6 @@ int16_t inputStateCallback(unsigned port, unsigned device, unsigned index, unsig
     Q_UNUSED(device)
     Q_UNUSED(index)
 
-    if (profileEnabled()) {
-        const auto start = std::chrono::steady_clock::now();
-        int16_t result = 0;
-        if (device == RETRO_DEVICE_JOYPAD)
-            result = LibretroInput::state(id);
-        else if (device == RETRO_DEVICE_POINTER)
-            result = LibretroTouch::state(device, id);
-
-        const auto end = std::chrono::steady_clock::now();
-        auto& stats = inputStats();
-        stats.calls.fetch_add(1, std::memory_order_relaxed);
-        stats.totalNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()), std::memory_order_relaxed);
-        printStatsIfNeeded("input_state", stats);
-        return result;
-    }
-
     if (device == RETRO_DEVICE_JOYPAD)
         return LibretroInput::state(id);
 
@@ -156,44 +46,6 @@ int16_t inputStateCallback(unsigned port, unsigned device, unsigned index, unsig
     return 0;
 }
 
-int readIntFromEnv(const char* name, int fallback, int minimum, int maximum)
-{
-    const char* rawValue = std::getenv(name);
-    if (!rawValue) {
-        return fallback;
-    }
-
-    char* end = nullptr;
-    const long parsed = std::strtol(rawValue, &end, 10);
-    if (end == rawValue || *end != '\0') {
-        return fallback;
-    }
-
-    return std::clamp(static_cast<int>(parsed), minimum, maximum);
-}
-
-int defaultDesmumeThreadCount()
-{
-#if defined(__linux__) && defined(__aarch64__)
-    const int aarch64Default = 4;
-#else
-    const int aarch64Default = 2;
-#endif
-
-    const unsigned hw = std::thread::hardware_concurrency();
-    if (hw == 0u) {
-        return aarch64Default;
-    }
-
-    const int suggested = std::clamp(static_cast<int>(hw > 1u ? hw - 1u : 1u), 1, 8);
-    return std::max(aarch64Default, suggested);
-}
-
-QByteArray readStringFromEnv(const char* name)
-{
-    const char* rawValue = std::getenv(name);
-    return rawValue ? QByteArray(rawValue) : QByteArray();
-}
 }
 
 bool LibretroCore::load(const QString& libraryPath)
@@ -217,29 +69,6 @@ bool LibretroCore::load(const QString& libraryPath)
                   << libraryPath.toStdString() << std::endl;
         m_library.unload();
         return false;
-    }
-
-    const QString libraryName = QFileInfo(libraryPath).fileName();
-    m_isDesmume2015 = libraryName.contains(QStringLiteral("desmume"), Qt::CaseInsensitive);
-
-    if (m_isDesmume2015) {
-        const QByteArray cpuModeEnv = readStringFromEnv("PULSAR_DESMUME_CPU_MODE");
-        const QString cpuMode = cpuModeEnv.isEmpty() ? QStringLiteral("jit") : QString::fromUtf8(cpuModeEnv);
-        const int jitBlockSize = readIntFromEnv("PULSAR_DESMUME_JIT_BLOCK_SIZE", 20, 1, 128);
-        const int numCores = readIntFromEnv("PULSAR_DESMUME_NUM_CORES", defaultDesmumeThreadCount(), 1, 8);
-
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_cpu_mode"), cpuMode);
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_jit_block_size"), QString::number(jitBlockSize));
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_num_cores"), QString::number(numCores));
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_advanced_timing"), QStringLiteral("disabled"));
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_frameskip"), QStringLiteral("0"));
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_internal_resolution"), QStringLiteral("256x192"));
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_gfx_edgemark"), QStringLiteral("disabled"));
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_gfx_linehack"), QStringLiteral("disabled"));
-
-        std::cout << "[desmume config] cpu_mode=" << cpuMode.toStdString()
-                  << " jit_block_size=" << jitBlockSize
-                  << " num_cores=" << numCores << std::endl;
     }
 
     std::cout << "================================" << std::endl;
@@ -406,6 +235,7 @@ bool LibretroCore::loadGame(const QString& romPath)
 
     if (!retro_load_game(&game))
     {
+        std::cerr << "Le core a refuse la ROM: " << romPath.toStdString() << std::endl;
         return false;
     }
 
@@ -437,18 +267,6 @@ void LibretroCore::runFrame()
 {
     if (retro_run) {
         FrameTimingProfiler::ScopedTimer timer(FrameTimingProfiler::Stage::RetroRun);
-
-        if (profileEnabled()) {
-            const auto start = std::chrono::steady_clock::now();
-            retro_run();
-            const auto end = std::chrono::steady_clock::now();
-            auto& stats = runStats();
-            stats.calls.fetch_add(1, std::memory_order_relaxed);
-            stats.totalNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()), std::memory_order_relaxed);
-            printStatsIfNeeded("retro_run", stats);
-            return;
-        }
-
         retro_run();
     }
 }

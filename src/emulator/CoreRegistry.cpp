@@ -3,48 +3,22 @@
 #include "utils/Paths.h"
 
 #include <QDir>
-#include <QFileInfo>
-#include <QStringList>
 
 namespace
 {
-CoreDescriptor makeDesmumeDescriptor()
+CoreDescriptor makeMelonDsDescriptor()
 {
 #ifdef Q_OS_WIN
     return {
         ConsoleType::NDS,
-        QStringLiteral("DeSmuME"),
-        QDir(Paths::cores()).filePath(QStringLiteral("desmume_libretro-win32-x86_64/desmume2015_libretro.dll"))
+        QStringLiteral("melonDS"),
+        QDir(Paths::cores()).filePath(QStringLiteral("melondsds_libretro-win32-x86_64/melondsds_libretro.dll"))
     };
 #else
-    const QString coresDirectory = Paths::cores();
-    const QStringList coreDirectories = {
-        QStringLiteral("desmume_libretro-linux-aarch64"),
-        QStringLiteral("desmume_libretro-linux-arm64"),
-        QStringLiteral("desmume_libretro-linux-x86_64")
-    };
-
-    QString selectedCore;
-    for (const QString& directory : coreDirectories) {
-        const QDir coreDirectory(QDir(coresDirectory).filePath(directory));
-        const QString currentCore = coreDirectory.filePath(QStringLiteral("desmume_libretro.so"));
-        const QString legacyCore = coreDirectory.filePath(QStringLiteral("desmume2015_libretro.so"));
-
-        if (QFileInfo::exists(currentCore)) {
-            selectedCore = currentCore;
-            break;
-        }
-
-        if (QFileInfo::exists(legacyCore)) {
-            selectedCore = legacyCore;
-            break;
-        }
-    }
-
     return {
         ConsoleType::NDS,
-        QStringLiteral("DeSmuME 2015"),
-        selectedCore
+        QStringLiteral("melonDS"),
+        QDir(Paths::cores()).filePath(QStringLiteral("melondsds_libretro-linux-x86_64/melondsds_libretro.so"))
     };
 #endif
 }
@@ -72,7 +46,7 @@ std::optional<CoreDescriptor> CoreRegistry::descriptor(ConsoleType console)
     switch (console)
     {
         case ConsoleType::NDS:
-            return makeDesmumeDescriptor();
+            return makeMelonDsDescriptor();
 
         case ConsoleType::GBA:
             return makeMGbaDescriptor();

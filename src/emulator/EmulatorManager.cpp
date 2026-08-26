@@ -31,13 +31,11 @@ bool EmulatorManager::initialize(ConsoleType console)
 
 bool EmulatorManager::loadRom(const QString& romPath)
 {
-    // Load the ROM into the emulator core here
     return m_core.loadGame(romPath);
 }
 
 void EmulatorManager::runFrame()
 {
-    // Run a single frame of emulation here
     m_core.runFrame();
 }
 
