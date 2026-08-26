@@ -206,18 +206,21 @@ bool LibretroCore::load(const QString& libraryPath)
     m_library.setFileName(libraryPath);
 
     if (!m_library.load()) {
+        std::cerr << "Impossible de charger le core libretro "
+                  << libraryPath.toStdString() << ": "
+                  << m_library.errorString().toStdString() << std::endl;
         return false;
     }
 
     if (!resolveSymbols()) {
+        std::cerr << "Le core libretro ne fournit pas tous les symboles requis: "
+                  << libraryPath.toStdString() << std::endl;
+        m_library.unload();
         return false;
     }
 
     const QString libraryName = QFileInfo(libraryPath).fileName();
-    m_isDesmume2015 = libraryName.compare(
-        QStringLiteral("desmume2015_libretro.dll"), Qt::CaseInsensitive) == 0
-        || libraryName.compare(
-            QStringLiteral("desmume_libretro.so"), Qt::CaseInsensitive) == 0;
+    m_isDesmume2015 = libraryName.contains(QStringLiteral("desmume"), Qt::CaseInsensitive);
 
     if (m_isDesmume2015) {
         const QByteArray cpuModeEnv = readStringFromEnv("PULSAR_DESMUME_CPU_MODE");
