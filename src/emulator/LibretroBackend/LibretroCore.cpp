@@ -217,7 +217,7 @@ bool LibretroCore::load(const QString& libraryPath)
     m_isDesmume2015 = libraryName.compare(
         QStringLiteral("desmume2015_libretro.dll"), Qt::CaseInsensitive) == 0
         || libraryName.compare(
-            QStringLiteral("desmume2015_libretro.so"), Qt::CaseInsensitive) == 0;
+            QStringLiteral("desmume_libretro.so"), Qt::CaseInsensitive) == 0;
 
     if (m_isDesmume2015) {
         const QByteArray cpuModeEnv = readStringFromEnv("PULSAR_DESMUME_CPU_MODE");

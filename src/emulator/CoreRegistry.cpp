@@ -11,14 +11,14 @@ CoreDescriptor makeDesmumeDescriptor()
 #ifdef Q_OS_WIN
     return {
         ConsoleType::NDS,
-        QStringLiteral("DeSmuME 2015"),
+        QStringLiteral("DeSmuME"),
         QDir(Paths::cores()).filePath(QStringLiteral("desmume_libretro-win32-x86_64/desmume2015_libretro.dll"))
     };
 #else
     return {
         ConsoleType::NDS,
         QStringLiteral("DeSmuME 2015"),
-        QDir(Paths::cores()).filePath(QStringLiteral("desmume_libretro-linux-x86_64/desmume2015_libretro.so"))
+        QDir(Paths::cores()).filePath(QStringLiteral("desmume_libretro-linux-x86_64/desmume_libretro.so"))
     };
 #endif
 }
