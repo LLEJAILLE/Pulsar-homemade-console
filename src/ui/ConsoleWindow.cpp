@@ -7,9 +7,13 @@
 
 #include "pages/BottomHomePage.h"
 #include "pages/EmulatorPage.h"
+#include "pages/SettingsPage.h"
+#include "pages/GameInstallerPage.h"
 #include "emulator/EmulatorManager.h"
+#include "library/LibraryManager.h"
 #include "screens/BottomScreen.h"
 #include "screens/TopScreen.h"
+#include "utils/Paths.h"
 
 #include "audio/AudioManager.h"
 
@@ -37,6 +41,7 @@ ConsoleWindow::ConsoleWindow(const std::vector<Game> &games, QWidget *parent) : 
             if (auto *bottomHomePage = m_bottomScreen->findChild<BottomHomePage *>()) {
                 connect(bottomHomePage, &BottomHomePage::selectedGameChanged, m_topScreen, &TopScreen::setGameTitle);
                 connect(bottomHomePage, &BottomHomePage::launchGame, this, &ConsoleWindow::launchGame);
+                connect(bottomHomePage, &BottomHomePage::openSettings, this, &ConsoleWindow::openSettings);
 
                 if (!m_games.empty())
                 {
@@ -44,6 +49,50 @@ ConsoleWindow::ConsoleWindow(const std::vector<Game> &games, QWidget *parent) : 
                 }
             }
         });
+    }
+}
+
+void ConsoleWindow::openSettings()
+{
+    m_currentPage = Page::Settings;
+    m_bottomScreen->loadPage(m_currentPage, m_games);
+
+    if (auto *settingsPage = m_bottomScreen->findChild<SettingsPage *>()) {
+        connect(settingsPage, &SettingsPage::backToHome, this, &ConsoleWindow::backToHome);
+        connect(settingsPage, &SettingsPage::openGameInstaller, this, &ConsoleWindow::openGameInstaller);
+        settingsPage->setFocus();
+    }
+}
+
+void ConsoleWindow::openGameInstaller()
+{
+    m_currentPage = Page::GameInstaller;
+    m_bottomScreen->loadPage(m_currentPage, m_games);
+
+    if (auto *installerPage = m_bottomScreen->findChild<GameInstallerPage *>()) {
+        connect(installerPage, &GameInstallerPage::backToSettings, this, &ConsoleWindow::backToSettings);
+        connect(installerPage, &GameInstallerPage::gameInstalled, this, &ConsoleWindow::refreshLibrary);
+        installerPage->setFocus();
+    }
+}
+
+void ConsoleWindow::refreshLibrary()
+{
+    LibraryManager libraryManager;
+    const QByteArray libraryPathUtf8 = Paths::library().toUtf8();
+    libraryManager.scan(std::filesystem::u8path(libraryPathUtf8.constData()));
+    m_games = libraryManager.games();
+}
+
+void ConsoleWindow::backToSettings()
+{
+    m_currentPage = Page::Settings;
+    m_bottomScreen->loadPage(m_currentPage, m_games);
+
+    if (auto *settingsPage = m_bottomScreen->findChild<SettingsPage *>()) {
+        connect(settingsPage, &SettingsPage::backToHome, this, &ConsoleWindow::backToHome);
+        connect(settingsPage, &SettingsPage::openGameInstaller, this, &ConsoleWindow::openGameInstaller);
+        settingsPage->setFocus();
     }
 }
 
@@ -78,6 +127,19 @@ void ConsoleWindow::backToHome()
         EmulatorManager::instance().stop();
         m_emulatorPage->deleteLater();
         m_emulatorPage = nullptr;
+    }
+
+    m_topScreen->loadPage(m_currentPage);
+    m_bottomScreen->loadPage(m_currentPage, m_games);
+
+    if (auto *bottomHomePage = m_bottomScreen->findChild<BottomHomePage *>()) {
+        connect(bottomHomePage, &BottomHomePage::selectedGameChanged, m_topScreen, &TopScreen::setGameTitle);
+        connect(bottomHomePage, &BottomHomePage::launchGame, this, &ConsoleWindow::launchGame);
+        connect(bottomHomePage, &BottomHomePage::openSettings, this, &ConsoleWindow::openSettings);
+
+        if (!m_games.empty()) {
+            m_topScreen->setGameTitle(QString::fromStdString(m_games.front().title));
+        }
     }
 
     m_topScreen->show();

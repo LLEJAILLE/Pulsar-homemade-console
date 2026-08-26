@@ -207,6 +207,35 @@ The launcher is made of two main views:
 - launching a game
 - menu music playback
 
+### Installing a new game
+
+Games can be installed without restarting the console:
+
+1. Open the `Parametre` tile at the beginning of the launcher.
+2. Select `Installer un nouveau jeu` and confirm with `A`, Space, or Enter.
+3. Select a detected drive. Drive labels are displayed when Windows provides one; the drive letter is shown as a fallback.
+4. Browse through folders with the arrow keys. Press `B` or Escape to go back.
+5. Open a folder named `gba` or `nds` and select a `.gba` or `.nds` file.
+6. Press `A`, Space, or Enter to install the selected game.
+
+The ROM is copied to the matching project folder:
+
+- `.gba` files are copied to `src/library/gba`.
+- `.nds` files are copied to `src/library/nds`.
+
+After a successful installation, the library is rescanned automatically. The new game appears in the launcher when returning to the home page, so the console does not need to be restarted. The installer displays whether the ROM was copied successfully and whether its cover was copied as well.
+
+#### Covers
+
+To install a cover automatically, place a `cover` folder on the drive and give the image the same base name as the ROM. For example:
+
+```text
+E:/games/gba/Pokemon.gba
+E:/games/cover/Pokemon.png
+```
+
+PNG covers are matched without regard to letter case and copied to `assets/icons`. The launcher uses the ROM title and the `.png` extension to find the cover. If no matching cover is found, the game uses the default placeholder image.
+
 ### Emulator page
 
 `EmulatorPage` hosts the running game session and creates one widget per logical screen:

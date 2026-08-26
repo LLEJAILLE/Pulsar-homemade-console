@@ -5,6 +5,8 @@
 
 #include "../pages/SplashScreen.h"
 #include "../pages/BottomHomePage.h"
+#include "../pages/SettingsPage.h"
+#include "../pages/GameInstallerPage.h"
 #include "../../utils/env.hpp"
 #include <QPainter>
 
@@ -43,6 +45,10 @@ void BottomScreen::loadPage(Page page, const std::vector<Game> &games)
     }
     else if (page == Page::Home) {
         m_pageWidget = new BottomHomePage(games, this);
+    } else if (page == Page::Settings) {
+        m_pageWidget = new SettingsPage(this);
+    } else if (page == Page::GameInstaller) {
+        m_pageWidget = new GameInstallerPage(this);
     } else {
         auto *placeholder = new QLabel(QStringLiteral("Page not implemented yet"), this);
         placeholder->setAlignment(Qt::AlignCenter);

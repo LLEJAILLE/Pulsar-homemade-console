@@ -29,6 +29,7 @@ public:
 signals:
     void selectedGameChanged(const QString &gameTitle);
     void launchGame(const Game &game);
+    void openSettings();
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

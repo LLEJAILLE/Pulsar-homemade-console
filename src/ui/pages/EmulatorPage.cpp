@@ -9,6 +9,7 @@
 
 #include "audio/AudioManager.h"
 #include "emulator/ConsoleProfile.h"
+#include "emulator/CoreRegistry.h"
 #include "emulator/EmulatorManager.h"
 #include "emulator/LibretroBackend/LibretroAudio.h"
 #include "input/InputManager.h"
@@ -359,6 +360,13 @@ void EmulatorPage::createOverlays()
     auto *titleLabel = new QLabel(QStringLiteral("Parametres"), m_overlay);
     titleLabel->setStyleSheet(QStringLiteral("color: white; font-size: 24px; font-weight: 700;"));
 
+    auto *coreLabel = new QLabel(m_overlay);
+    const std::optional<CoreDescriptor> core = CoreRegistry::descriptor(m_game.console);
+    coreLabel->setText(core.has_value()
+        ? QStringLiteral("Core actif : %1").arg(core->name)
+        : QStringLiteral("Core actif : inconnu"));
+    coreLabel->setStyleSheet(QStringLiteral("color: rgba(255, 255, 255, 210); font-size: 16px;"));
+
     m_settingsPanel = new QWidget(m_overlay);
     m_settingsPanel->setStyleSheet(QStringLiteral("background-color: rgba(255, 255, 255, 20); border: 1px solid rgba(255, 255, 255, 70); border-radius: 10px;"));
     m_settingsGrid = new QGridLayout(m_settingsPanel);
@@ -397,6 +405,7 @@ void EmulatorPage::createOverlays()
     hintLabel->setStyleSheet(QStringLiteral("color: rgba(255, 255, 255, 210); font-size: 14px;"));
 
     overlayLayout->addWidget(titleLabel);
+    overlayLayout->addWidget(coreLabel);
     overlayLayout->addWidget(m_settingsPanel);
     overlayLayout->addWidget(hintLabel);
     overlayLayout->addStretch();

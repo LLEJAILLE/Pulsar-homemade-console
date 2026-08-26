@@ -27,4 +27,8 @@ private:
 
     void launchGame(const Game &game);
     void backToHome();
+    void openSettings();
+    void openGameInstaller();
+    void backToSettings();
+    void refreshLibrary();
 };

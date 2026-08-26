@@ -6,19 +6,19 @@
 
 namespace
 {
-CoreDescriptor makeMelonDsDescriptor()
+CoreDescriptor makeDesmumeDescriptor()
 {
 #ifdef Q_OS_WIN
     return {
         ConsoleType::NDS,
-        QStringLiteral("melonDS"),
-        QDir(Paths::cores()).filePath(QStringLiteral("melondsds_libretro-win32-x86_64/melondsds_libretro.dll"))
+        QStringLiteral("DeSmuME 2015"),
+        QDir(Paths::cores()).filePath(QStringLiteral("desmume_libretro-win32-x86_64/desmume2015_libretro.dll"))
     };
 #else
     return {
         ConsoleType::NDS,
-        QStringLiteral("melonDS"),
-        QDir(Paths::cores()).filePath(QStringLiteral("melondsds_libretro-linux-x86_64/melondsds_libretro.so"))
+        QStringLiteral("DeSmuME 2015"),
+        QDir(Paths::cores()).filePath(QStringLiteral("desmume_libretro-linux-x86_64/desmume2015_libretro.so"))
     };
 #endif
 }
@@ -46,7 +46,7 @@ std::optional<CoreDescriptor> CoreRegistry::descriptor(ConsoleType console)
     switch (console)
     {
         case ConsoleType::NDS:
-            return makeMelonDsDescriptor();
+            return makeDesmumeDescriptor();
 
         case ConsoleType::GBA:
             return makeMGbaDescriptor();

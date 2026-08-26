@@ -191,8 +191,14 @@ void BottomHomePage::keyPressEvent(QKeyEvent *event)
 
     case Qt::Key_Space:
     case Qt::Key_A:
-        if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_games.size())) {
-            emit launchGame(m_games[m_currentIndex]);
+        if (m_currentIndex == 0) {
+            emit openSettings();
+            event->accept();
+            return;
+        }
+
+        if (m_currentIndex > 0 && m_currentIndex - 1 < static_cast<int>(m_games.size())) {
+            emit launchGame(m_games[m_currentIndex - 1]);
         }
         event->accept();
         return;
@@ -299,6 +305,14 @@ BottomHomePage::BottomHomePage(const std::vector<Game> &games, QWidget *parent) 
     connect(m_timeTimer, &QTimer::timeout, this, &BottomHomePage::updateCurrentTime);
     m_timeTimer->start(1000);
 
+    m_gameTitles.push_back(QString());
+
+    Game settingsGame;
+    settingsGame.title = "settings";
+    auto *settingsTile = new GameTileWidget(settingsGame, m_container);
+    m_tiles.push_back(settingsTile);
+    m_gamesLayout->addWidget(settingsTile);
+
     for (const Game &game : games) {
         m_gameTitles.push_back(QString::fromStdString(game.title));
         auto *tile = new GameTileWidget(game, m_container);
@@ -307,7 +321,7 @@ BottomHomePage::BottomHomePage(const std::vector<Game> &games, QWidget *parent) 
     }
 
     if (!m_tiles.empty()) {
-        setCurrentIndex(0);
+        setCurrentIndex(m_tiles.size() > 1 ? 1 : 0);
     }
 
     m_scrollArea->setWidget(m_container);
