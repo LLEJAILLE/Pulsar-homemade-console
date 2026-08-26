@@ -73,6 +73,8 @@ class LibretroCore
 
         retro_set_controller_port_device_t retro_set_controller_port_device = nullptr;
 
+        bool m_isDesmume2015 = false;
+
 
     private:
         bool resolveSymbols();

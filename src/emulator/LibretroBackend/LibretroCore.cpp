@@ -49,6 +49,8 @@ namespace
 
 bool LibretroCore::load(const QString& libraryPath)
 {
+    LibretroEnvironment::resetCoreOptions();
+
     if (m_library.isLoaded())
         m_library.unload();
 
@@ -60,6 +62,23 @@ bool LibretroCore::load(const QString& libraryPath)
 
     if (!resolveSymbols()) {
         return false;
+    }
+
+    const QString libraryName = QFileInfo(libraryPath).fileName();
+    m_isDesmume2015 = libraryName.compare(
+        QStringLiteral("desmume2015_libretro.dll"), Qt::CaseInsensitive) == 0
+        || libraryName.compare(
+            QStringLiteral("desmume2015_libretro.so"), Qt::CaseInsensitive) == 0;
+
+    if (m_isDesmume2015) {
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_cpu_mode"), QStringLiteral("jit"));
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_jit_block_size"), QStringLiteral("20"));
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_num_cores"), QStringLiteral("2"));
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_advanced_timing"), QStringLiteral("disabled"));
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_frameskip"), QStringLiteral("0"));
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_internal_resolution"), QStringLiteral("256x192"));
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_gfx_edgemark"), QStringLiteral("disabled"));
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_gfx_linehack"), QStringLiteral("disabled"));
     }
 
     std::cout << "================================" << std::endl;
