@@ -137,52 +137,54 @@ EmulatorPage::EmulatorPage(const Game &game, QWidget *parent) : QWidget(parent) 
     {
         FrameTimingProfiler::beginFrame(expectedPaintEvents);
 
-        FrameTimingProfiler::ScopedTimer inputTimer(FrameTimingProfiler::Stage::Input);
-        const bool menuPressed = InputManager::button(InputManager::Button::Menu);
-        if (menuPressed && !m_menuButtonLatch) {
-            m_menuButtonLatch = true;
-            toggleSettingsOverlay();
-        } else if (!menuPressed) {
-            m_menuButtonLatch = false;
-        }
-
-        auto handleOverlayButtonEdge = [](bool pressed, bool &latch, const std::function<void()> &onPressed)
         {
-            if (pressed && !latch) {
-                latch = true;
-                onPressed();
-            } else if (!pressed) {
-                latch = false;
-            }
-        };
-
-        if (m_overlaySettingsOpen) {
-            handleOverlayButtonEdge(InputManager::button(InputManager::Button::Up), m_upButtonLatch, [this]() {
-                m_selectedSettingIndex = (m_selectedSettingIndex - 1 + static_cast<int>(m_settingRows.size()))
-                    % static_cast<int>(m_settingRows.size());
-                updateSelectionUi();
-            });
-
-            handleOverlayButtonEdge(InputManager::button(InputManager::Button::Down), m_downButtonLatch, [this]() {
-                m_selectedSettingIndex = (m_selectedSettingIndex + 1) % static_cast<int>(m_settingRows.size());
-                updateSelectionUi();
-            });
-
-            handleOverlayButtonEdge(InputManager::button(InputManager::Button::Left), m_leftButtonLatch, [this]() {
-                adjustSelectedSetting(-1);
-            });
-
-            handleOverlayButtonEdge(InputManager::button(InputManager::Button::Right), m_rightButtonLatch, [this]() {
-                adjustSelectedSetting(1);
-            });
-
-            handleOverlayButtonEdge(InputManager::button(InputManager::Button::A), m_aButtonLatch, [this]() {
-                activateSelectedSetting();
-            });
-
-            handleOverlayButtonEdge(InputManager::button(InputManager::Button::B), m_bButtonLatch, [this]() {
+            FrameTimingProfiler::ScopedTimer inputTimer(FrameTimingProfiler::Stage::Input);
+            const bool menuPressed = InputManager::button(InputManager::Button::Menu);
+            if (menuPressed && !m_menuButtonLatch) {
+                m_menuButtonLatch = true;
                 toggleSettingsOverlay();
-            });
+            } else if (!menuPressed) {
+                m_menuButtonLatch = false;
+            }
+
+            auto handleOverlayButtonEdge = [](bool pressed, bool &latch, const std::function<void()> &onPressed)
+            {
+                if (pressed && !latch) {
+                    latch = true;
+                    onPressed();
+                } else if (!pressed) {
+                    latch = false;
+                }
+            };
+
+            if (m_overlaySettingsOpen) {
+                handleOverlayButtonEdge(InputManager::button(InputManager::Button::Up), m_upButtonLatch, [this]() {
+                    m_selectedSettingIndex = (m_selectedSettingIndex - 1 + static_cast<int>(m_settingRows.size()))
+                        % static_cast<int>(m_settingRows.size());
+                    updateSelectionUi();
+                });
+
+                handleOverlayButtonEdge(InputManager::button(InputManager::Button::Down), m_downButtonLatch, [this]() {
+                    m_selectedSettingIndex = (m_selectedSettingIndex + 1) % static_cast<int>(m_settingRows.size());
+                    updateSelectionUi();
+                });
+
+                handleOverlayButtonEdge(InputManager::button(InputManager::Button::Left), m_leftButtonLatch, [this]() {
+                    adjustSelectedSetting(-1);
+                });
+
+                handleOverlayButtonEdge(InputManager::button(InputManager::Button::Right), m_rightButtonLatch, [this]() {
+                    adjustSelectedSetting(1);
+                });
+
+                handleOverlayButtonEdge(InputManager::button(InputManager::Button::A), m_aButtonLatch, [this]() {
+                    activateSelectedSetting();
+                });
+
+                handleOverlayButtonEdge(InputManager::button(InputManager::Button::B), m_bButtonLatch, [this]() {
+                    toggleSettingsOverlay();
+                });
+            }
         }
 
         QElapsedTimer frameTimer;

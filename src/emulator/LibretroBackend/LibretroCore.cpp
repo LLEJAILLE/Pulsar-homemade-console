@@ -9,9 +9,11 @@
 #include <QFileInfo>
 #include <atomic>
 #include <chrono>
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <thread>
 
 namespace
 {
@@ -153,6 +155,45 @@ int16_t inputStateCallback(unsigned port, unsigned device, unsigned index, unsig
 
     return 0;
 }
+
+int readIntFromEnv(const char* name, int fallback, int minimum, int maximum)
+{
+    const char* rawValue = std::getenv(name);
+    if (!rawValue) {
+        return fallback;
+    }
+
+    char* end = nullptr;
+    const long parsed = std::strtol(rawValue, &end, 10);
+    if (end == rawValue || *end != '\0') {
+        return fallback;
+    }
+
+    return std::clamp(static_cast<int>(parsed), minimum, maximum);
+}
+
+int defaultDesmumeThreadCount()
+{
+#if defined(__linux__) && defined(__aarch64__)
+    const int aarch64Default = 4;
+#else
+    const int aarch64Default = 2;
+#endif
+
+    const unsigned hw = std::thread::hardware_concurrency();
+    if (hw == 0u) {
+        return aarch64Default;
+    }
+
+    const int suggested = std::clamp(static_cast<int>(hw > 1u ? hw - 1u : 1u), 1, 8);
+    return std::max(aarch64Default, suggested);
+}
+
+QByteArray readStringFromEnv(const char* name)
+{
+    const char* rawValue = std::getenv(name);
+    return rawValue ? QByteArray(rawValue) : QByteArray();
+}
 }
 
 bool LibretroCore::load(const QString& libraryPath)
@@ -179,14 +220,23 @@ bool LibretroCore::load(const QString& libraryPath)
             QStringLiteral("desmume2015_libretro.so"), Qt::CaseInsensitive) == 0;
 
     if (m_isDesmume2015) {
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_cpu_mode"), QStringLiteral("jit"));
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_jit_block_size"), QStringLiteral("20"));
-        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_num_cores"), QStringLiteral("2"));
+        const QByteArray cpuModeEnv = readStringFromEnv("PULSAR_DESMUME_CPU_MODE");
+        const QString cpuMode = cpuModeEnv.isEmpty() ? QStringLiteral("jit") : QString::fromUtf8(cpuModeEnv);
+        const int jitBlockSize = readIntFromEnv("PULSAR_DESMUME_JIT_BLOCK_SIZE", 20, 1, 128);
+        const int numCores = readIntFromEnv("PULSAR_DESMUME_NUM_CORES", defaultDesmumeThreadCount(), 1, 8);
+
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_cpu_mode"), cpuMode);
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_jit_block_size"), QString::number(jitBlockSize));
+        LibretroEnvironment::setCoreOption(QStringLiteral("desmume_num_cores"), QString::number(numCores));
         LibretroEnvironment::setCoreOption(QStringLiteral("desmume_advanced_timing"), QStringLiteral("disabled"));
         LibretroEnvironment::setCoreOption(QStringLiteral("desmume_frameskip"), QStringLiteral("0"));
         LibretroEnvironment::setCoreOption(QStringLiteral("desmume_internal_resolution"), QStringLiteral("256x192"));
         LibretroEnvironment::setCoreOption(QStringLiteral("desmume_gfx_edgemark"), QStringLiteral("disabled"));
         LibretroEnvironment::setCoreOption(QStringLiteral("desmume_gfx_linehack"), QStringLiteral("disabled"));
+
+        std::cout << "[desmume config] cpu_mode=" << cpuMode.toStdString()
+                  << " jit_block_size=" << jitBlockSize
+                  << " num_cores=" << numCores << std::endl;
     }
 
     std::cout << "================================" << std::endl;
