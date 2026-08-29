@@ -21,8 +21,8 @@
 
 namespace
 {
-constexpr int kPageMargin = 16;
-constexpr int kPageSpacing = 8;
+constexpr int kPageMargin = 8;  // Reduced for vertical 800x480 display
+constexpr int kPageSpacing = 4;  // Reduced spacing
 
 const char *kSettingsPageStyle = R"(
     BottomSettingsPage {

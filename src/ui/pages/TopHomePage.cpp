@@ -6,8 +6,8 @@
 
 namespace
 {
-constexpr int kPageMargin = 16;
-constexpr int kTitleFontSize = 24;
+constexpr int kPageMargin = 8;  // Reduced for smaller screen
+constexpr int kTitleFontSize = 18;  // Reduced for 240px height
 
 const char *kHomePageStyle = R"(
     TopHomePage {

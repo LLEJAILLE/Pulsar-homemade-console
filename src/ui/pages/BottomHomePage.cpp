@@ -20,10 +20,10 @@
 
 namespace
 {
-constexpr int kPageMargin = 16;
-constexpr int kPageSpacing = 10;
-constexpr int kTitleFontSize = 24;
-constexpr int kTileSpacing = 24;
+constexpr int kPageMargin = 8;  // Reduced for vertical 800x480 display
+constexpr int kPageSpacing = 5;  // Reduced spacing
+constexpr int kTitleFontSize = 18;  // Reduced for smaller height
+constexpr int kTileSpacing = 10;  // Reduced for compact layout
 
 const char *kHomePageStyle = R"(
     HomePage {

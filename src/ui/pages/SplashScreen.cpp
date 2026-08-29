@@ -14,8 +14,8 @@
 
 namespace
 {
-constexpr int kLogoBaseSize = 360;
-constexpr int kLogoMinSize = 180;
+constexpr int kLogoBaseSize = 180;  // Reduced for 240px height screens
+constexpr int kLogoMinSize = 90;    // Reduced accordingly
 }
 
 SplashScreen::SplashScreen(QWidget *parent)
