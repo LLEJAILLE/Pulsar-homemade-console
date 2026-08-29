@@ -39,7 +39,7 @@ QMap<QString, QString> EmulatorConfig::getHighPerformanceConfig()
     
     // ===== Rendering Optimization =====
     config["melonds_render_mode"] = "software";         // Software rendering au lieu d'OpenGL
-    config["melonds_threaded_renderer"] = "disabled";   // Désactiver multi-thread pour faible perf
+    config["melonds_threaded_renderer"] = "enabled";    // Activer multi-thread (+20-30% perf sur RPi)
     
     // ===== Audio Optimization =====
     config["melonds_audio_interpolation"] = "disabled"; // Pas d'interpolation audio
