@@ -18,8 +18,7 @@ int main(int argc, char *argv[])
     libraryManager.scan(std::filesystem::u8path(libraryPathUtf8.constData()));
 
     ConsoleWindow window(libraryManager.games());
-    window.setWindowTitle(QStringLiteral("PulsarOS"));
-    window.show();
+    window.setWindowTitle(QStringLiteral("PulsarOS - Top Screen"));
 
     return app.exec();
 }

@@ -2,6 +2,9 @@
 
 #include <QVBoxLayout>
 #include <QTimer>
+#include <QApplication>
+#include <QScreen>
+#include <QGuiApplication>
 
 #include <QString>
 #include <filesystem>
@@ -21,11 +24,14 @@ ConsoleWindow::ConsoleWindow(const std::vector<Game> &games, QWidget *parent) : 
 {
     setStyleSheet(QStringLiteral("background-color: #000000;"));
 
-    auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
-    layout->addWidget(m_topScreen, 1);
-    layout->addWidget(m_bottomScreen, 1);
+    // Detect number of screens and setup dual-screen mode if available
+    auto screens = QGuiApplication::screens();
+    if (screens.size() >= 2) {
+        m_isDualScreenMode = true;
+        setupDualScreenMode(screens);
+    } else {
+        setupSingleScreenMode();
+    }
 
     m_topScreen->loadPage(m_currentPage);
     m_bottomScreen->loadPage(m_currentPage, m_games);
@@ -40,6 +46,55 @@ ConsoleWindow::ConsoleWindow(const std::vector<Game> &games, QWidget *parent) : 
             bindHomeSignals();
         });
     }
+}
+
+ConsoleWindow::~ConsoleWindow()
+{
+    if (m_separateBottomWindow) {
+        m_separateBottomWindow->deleteLater();
+    }
+}
+
+void ConsoleWindow::setupDualScreenMode(const QList<QScreen *> &screens)
+{
+    // Create separate window for BottomScreen on second display
+    m_separateBottomWindow = new QWidget(nullptr);
+    m_separateBottomWindow->setStyleSheet(QStringLiteral("background-color: #000000;"));
+    
+    auto *bottomLayout = new QVBoxLayout(m_separateBottomWindow);
+    bottomLayout->setContentsMargins(0, 0, 0, 0);
+    bottomLayout->setSpacing(0);
+    bottomLayout->addWidget(m_bottomScreen);
+    
+    // Setup TopScreen on first display (this window)
+    auto *topLayout = new QVBoxLayout(this);
+    topLayout->setContentsMargins(0, 0, 0, 0);
+    topLayout->setSpacing(0);
+    topLayout->addWidget(m_topScreen);
+    
+    // Position and show windows on their respective screens
+    // TopScreen on first screen
+    const QRect screen1Geometry = screens[0]->geometry();
+    this->setGeometry(screen1Geometry);
+    this->showFullScreen();
+    
+    // BottomScreen on second screen
+    const QRect screen2Geometry = screens[1]->geometry();
+    m_separateBottomWindow->setGeometry(screen2Geometry);
+    m_separateBottomWindow->showFullScreen();
+}
+
+void ConsoleWindow::setupSingleScreenMode()
+{
+    // Traditional vertical layout for single screen
+    auto *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    layout->addWidget(m_topScreen, 1);
+    layout->addWidget(m_bottomScreen, 1);
+    
+    // Show fullscreen on startup
+    this->showFullScreen();
 }
 
 void ConsoleWindow::launchGame(const Game &game)
@@ -58,6 +113,9 @@ void ConsoleWindow::launchGame(const Game &game)
 
     m_topScreen->hide();
     m_bottomScreen->hide();
+    if (m_separateBottomWindow) {
+        m_separateBottomWindow->hide();
+    }
     m_emulatorPage->setGeometry(rect());
     m_emulatorPage->show();
     m_emulatorPage->setFocus();
@@ -77,6 +135,9 @@ void ConsoleWindow::backToHome()
 
     m_topScreen->show();
     m_bottomScreen->show();
+    if (m_separateBottomWindow) {
+        m_separateBottomWindow->show();
+    }
     m_topScreen->loadPage(m_currentPage);
     m_bottomScreen->loadPage(m_currentPage, m_games);
     bindHomeSignals();
