@@ -120,7 +120,8 @@ void ConsoleWindow::launchGame(const Game &game)
         m_separateEmulatorGameWindow = nullptr;
     }
 
-    m_emulatorPage = new EmulatorPage(game, this);
+    // Create EmulatorPage WITHOUT parent so fullscreen works correctly
+    m_emulatorPage = new EmulatorPage(game, nullptr);
     connect(m_emulatorPage, &EmulatorPage::backToHome, this, &ConsoleWindow::backToHome);
 
     m_topScreen->hide();
@@ -133,7 +134,12 @@ void ConsoleWindow::launchGame(const Game &game)
     if (m_isDualScreenMode) {
         auto screens = QGuiApplication::screens();
         if (screens.size() >= 2) {
-            // Get the bottom screen widget from emulator page
+            // Show top screen of game on first screen
+            const QRect screen1Geometry = screens[0]->geometry();
+            m_emulatorPage->setGeometry(screen1Geometry);
+            m_emulatorPage->showFullScreen();
+            
+            // Get the bottom screen widget and move it to second display
             QWidget *gameBottomScreen = m_emulatorPage->getBottomScreenWidget();
             if (gameBottomScreen) {
                 // Create a separate window for the bottom screen on the second display
@@ -150,19 +156,12 @@ void ConsoleWindow::launchGame(const Game &game)
                 m_separateEmulatorGameWindow->setGeometry(screen2Geometry);
                 m_separateEmulatorGameWindow->showFullScreen();
             }
-            
-            // Show top screen of game on first screen
-            const QRect screen1Geometry = screens[0]->geometry();
-            m_emulatorPage->setGeometry(screen1Geometry);
-            m_emulatorPage->showFullScreen();
         } else {
-            m_emulatorPage->setGeometry(rect());
-            m_emulatorPage->show();
+            m_emulatorPage->showFullScreen();
         }
     } else {
-        // Single screen mode: show game normally
-        m_emulatorPage->setGeometry(rect());
-        m_emulatorPage->show();
+        // Single screen mode: show game in fullscreen
+        m_emulatorPage->showFullScreen();
     }
     
     m_emulatorPage->setFocus();
