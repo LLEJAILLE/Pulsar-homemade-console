@@ -30,6 +30,7 @@ public:
     const Game& currentGame() const { return m_game; }
 
     bool toggleSettingsOverlay();
+    QWidget* getBottomScreenWidget() { return m_bottomScreen; }  // Get bottom screen widget for dual-screen setup
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

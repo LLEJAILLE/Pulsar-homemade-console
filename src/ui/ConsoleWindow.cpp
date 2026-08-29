@@ -35,6 +35,9 @@ ConsoleWindow::ConsoleWindow(const std::vector<Game> &games, QWidget *parent) : 
 
     m_topScreen->loadPage(m_currentPage);
     m_bottomScreen->loadPage(m_currentPage, m_games);
+    
+    // Set focus to bottom screen for keyboard input (menu navigation)
+    m_bottomScreen->setFocus();
 
     if (m_currentPage == Page::SplashScreen) {
         AudioManager::instance().playSplashScreen();
@@ -52,6 +55,9 @@ ConsoleWindow::~ConsoleWindow()
 {
     if (m_separateBottomWindow) {
         m_separateBottomWindow->deleteLater();
+    }
+    if (m_separateEmulatorGameWindow) {
+        m_separateEmulatorGameWindow->deleteLater();
     }
 }
 
@@ -107,6 +113,12 @@ void ConsoleWindow::launchGame(const Game &game)
         m_emulatorPage->deleteLater();
         m_emulatorPage = nullptr;
     }
+    
+    if (m_separateEmulatorGameWindow) {
+        m_separateEmulatorGameWindow->hide();
+        m_separateEmulatorGameWindow->deleteLater();
+        m_separateEmulatorGameWindow = nullptr;
+    }
 
     m_emulatorPage = new EmulatorPage(game, this);
     connect(m_emulatorPage, &EmulatorPage::backToHome, this, &ConsoleWindow::backToHome);
@@ -116,8 +128,43 @@ void ConsoleWindow::launchGame(const Game &game)
     if (m_separateBottomWindow) {
         m_separateBottomWindow->hide();
     }
-    m_emulatorPage->setGeometry(rect());
-    m_emulatorPage->show();
+    
+    // In dual-screen mode, separate the game screens across two displays
+    if (m_isDualScreenMode) {
+        auto screens = QGuiApplication::screens();
+        if (screens.size() >= 2) {
+            // Get the bottom screen widget from emulator page
+            QWidget *gameBottomScreen = m_emulatorPage->getBottomScreenWidget();
+            if (gameBottomScreen) {
+                // Create a separate window for the bottom screen on the second display
+                m_separateEmulatorGameWindow = new QWidget(nullptr);
+                m_separateEmulatorGameWindow->setStyleSheet(QStringLiteral("background-color: #000000;"));
+                
+                auto *bottomLayout = new QVBoxLayout(m_separateEmulatorGameWindow);
+                bottomLayout->setContentsMargins(0, 0, 0, 0);
+                bottomLayout->setSpacing(0);
+                bottomLayout->addWidget(gameBottomScreen);
+                
+                // Show on second screen
+                const QRect screen2Geometry = screens[1]->geometry();
+                m_separateEmulatorGameWindow->setGeometry(screen2Geometry);
+                m_separateEmulatorGameWindow->showFullScreen();
+            }
+            
+            // Show top screen of game on first screen
+            const QRect screen1Geometry = screens[0]->geometry();
+            m_emulatorPage->setGeometry(screen1Geometry);
+            m_emulatorPage->showFullScreen();
+        } else {
+            m_emulatorPage->setGeometry(rect());
+            m_emulatorPage->show();
+        }
+    } else {
+        // Single screen mode: show game normally
+        m_emulatorPage->setGeometry(rect());
+        m_emulatorPage->show();
+    }
+    
     m_emulatorPage->setFocus();
 }
 
@@ -131,6 +178,12 @@ void ConsoleWindow::backToHome()
         EmulatorManager::instance().stop();
         m_emulatorPage->deleteLater();
         m_emulatorPage = nullptr;
+    }
+    
+    if (m_separateEmulatorGameWindow) {
+        m_separateEmulatorGameWindow->hide();
+        m_separateEmulatorGameWindow->deleteLater();
+        m_separateEmulatorGameWindow = nullptr;
     }
 
     m_topScreen->show();

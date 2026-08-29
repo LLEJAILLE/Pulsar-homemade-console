@@ -25,6 +25,7 @@ private:
     BottomScreen *m_bottomScreen;
     EmulatorPage *m_emulatorPage = nullptr;
     QWidget *m_separateBottomWindow = nullptr;
+    QWidget *m_separateEmulatorGameWindow = nullptr;  // For bottom screen of game in dual-screen mode
     bool m_isDualScreenMode = false;
 
     Page m_currentPage = Page::SplashScreen;
