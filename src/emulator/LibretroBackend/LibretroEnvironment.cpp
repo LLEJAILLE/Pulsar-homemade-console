@@ -15,6 +15,18 @@ retro_pixel_format LibretroEnvironment::pixelFormat()
     return m_pixelFormat;
 }
 
+void LibretroEnvironment::setCoreOptions(const QMap<QString, QString>& options)
+{
+    m_optionCache.clear();
+
+    for (auto it = options.cbegin(); it != options.cend(); ++it) {
+        m_optionCache.insert(it.key(), it.value().toUtf8());
+    }
+
+    std::cout << "[libretro] Configured option overrides: "
+              << m_optionCache.size() << std::endl;
+}
+
 bool LibretroEnvironment::callback(unsigned cmd, void* data)
 {
     switch (cmd) {
@@ -39,6 +51,23 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
         return true;
     }
 
+    case RETRO_ENVIRONMENT_SET_VARIABLES:
+    {
+        const auto variables = static_cast<const retro_variable*>(data);
+        int optionCount = 0;
+
+        if (variables) {
+            for (const retro_variable* variable = variables; variable->key; ++variable) {
+                ++optionCount;
+                std::cout << "[libretro] SET_VARIABLES: " << variable->key << std::endl;
+            }
+        }
+
+        std::cout << "[libretro] SET_VARIABLES received: "
+                  << optionCount << " definitions" << std::endl;
+        return true;
+    }
+
     case RETRO_ENVIRONMENT_GET_VARIABLE:
     {
         if (!data)
@@ -55,7 +84,7 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
         if (it == m_optionCache.end()) {
             var->value = nullptr;
 
-            std::cout << "GET_VARIABLE: "
+            std::cout << "[libretro] GET_VARIABLE: "
                     << key.toStdString()
                     << " = (NOT SET)"
                     << std::endl;
@@ -66,7 +95,7 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
 
         var->value = it.value().constData();
 
-        std::cout << "GET_VARIABLE: "
+        std::cout << "[libretro] GET_VARIABLE: "
                 << key.toStdString()
                 << " = "
                 << var->value

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <QByteArray>
 #include <QMap>
 #include <QString>
@@ -9,6 +11,7 @@ class LibretroEnvironment
     public:
         static bool callback(unsigned cmd, void* data);
         static retro_pixel_format pixelFormat();
+        static void setCoreOptions(const QMap<QString, QString>& options);
 
     private:
         static retro_pixel_format m_pixelFormat;

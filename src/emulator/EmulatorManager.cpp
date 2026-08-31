@@ -1,5 +1,6 @@
 #include "EmulatorManager.h"
 #include "CoreRegistry.h"
+#include "LibretroBackend/LibretroEnvironment.h"
 
 #include <QFile>
 #include <iostream>
@@ -25,6 +26,8 @@ bool EmulatorManager::initialize(ConsoleType console)
 
     if (!m_core.load(core->libraryPath))
         return false;
+
+    LibretroEnvironment::setCoreOptions(QMap<QString, QString>{});
 
     return m_core.initialize();
 }
