@@ -27,7 +27,9 @@ bool EmulatorManager::initialize(ConsoleType console)
     if (!m_core.load(core->libraryPath))
         return false;
 
-    LibretroEnvironment::setCoreOptions(QMap<QString, QString>{});
+    LibretroEnvironment::setCoreOptions({
+        {QStringLiteral("melonds_jit_fast_memory"), QStringLiteral("disabled")}
+    });
 
     return m_core.initialize();
 }
