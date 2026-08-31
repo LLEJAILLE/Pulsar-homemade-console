@@ -31,6 +31,8 @@ QMap<QString, QString> EmulatorConfig::getHighPerformanceConfig()
     QMap<QString, QString> config;
 
     config["melonds_jit_enable"] = "enabled";
+    config["melonds_jit_block_size"] = "32";
+    
     config["melonds_render_mode"] = "software";
     config["melonds_threaded_renderer"] = "enabled";
     config["melonds_audio_interpolation"] = "disabled";
