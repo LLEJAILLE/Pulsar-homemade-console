@@ -1,5 +1,6 @@
 #include "EmulatorManager.h"
 #include "CoreRegistry.h"
+#include "EmulatorConfig.h"
 
 #include <QFile>
 #include <iostream>
@@ -25,6 +26,9 @@ bool EmulatorManager::initialize(ConsoleType console)
 
     if (!m_core.load(core->libraryPath))
         return false;
+
+    if (console == ConsoleType::NDS)
+        EmulatorConfig::applyRaspberryPiOptimization();
 
     return m_core.initialize();
 }

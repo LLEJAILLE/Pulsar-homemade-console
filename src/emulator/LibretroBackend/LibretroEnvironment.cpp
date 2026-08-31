@@ -15,6 +15,36 @@ retro_pixel_format LibretroEnvironment::pixelFormat()
     return m_pixelFormat;
 }
 
+void LibretroEnvironment::setOptions(const QMap<QString, QString>& options)
+{
+    m_optionCache.clear();
+
+    for (auto it = options.cbegin(); it != options.cend(); ++it) {
+        m_optionCache.insert(it.key(), it.value().toUtf8());
+    }
+}
+
+void LibretroEnvironment::registerCoreOptions(const retro_core_options_v2* options)
+{
+    if (!options || !options->definitions)
+        return;
+
+    int optionCount = 0;
+
+    for (const retro_core_option_v2_definition* definition = options->definitions;
+         definition->key;
+         ++definition) {
+        ++optionCount;
+
+        const QString key = QString::fromUtf8(definition->key);
+        if (!m_optionCache.contains(key) && definition->default_value) {
+            m_optionCache.insert(key, QByteArray(definition->default_value));
+        }
+    }
+
+    std::cout << "Core options V2 registered: " << optionCount << std::endl;
+}
+
 bool LibretroEnvironment::callback(unsigned cmd, void* data)
 {
     switch (cmd) {
@@ -36,6 +66,26 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
 
         systemDir = QDir::toNativeSeparators(Paths::system()).toLocal8Bit();
         *static_cast<const char**>(data) = systemDir.constData();
+        return true;
+    }
+
+    case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
+    {
+        if (!data)
+            return false;
+
+        *static_cast<unsigned*>(data) = 2;
+        return true;
+    }
+
+    case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+        registerCoreOptions(static_cast<const retro_core_options_v2*>(data));
+        return true;
+
+    case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    {
+        const auto options = static_cast<const retro_core_options_v2_intl*>(data);
+        registerCoreOptions(options ? options->us : nullptr);
         return true;
     }
 

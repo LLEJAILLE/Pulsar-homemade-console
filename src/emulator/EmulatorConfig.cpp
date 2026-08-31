@@ -1,5 +1,7 @@
 #include "EmulatorConfig.h"
 
+#include "LibretroBackend/LibretroEnvironment.h"
+
 void EmulatorConfig::applyOptimizationProfile(OptimizationProfile profile)
 {
     QMap<QString, QString> config;
@@ -16,9 +18,7 @@ void EmulatorConfig::applyOptimizationProfile(OptimizationProfile profile)
             break;
     }
     
-    // TODO: Implement proper libretro variable application
-    // For now, variables are stored but not actively applied to the core
-    // This requires proper integration with RETRO_ENVIRONMENT_SET_VARIABLES
+    LibretroEnvironment::setOptions(config);
 }
 
 void EmulatorConfig::applyRaspberryPiOptimization()
