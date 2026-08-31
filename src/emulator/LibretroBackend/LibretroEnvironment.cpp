@@ -141,6 +141,8 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
     }
 
     default:
+        std::cout << "[libretro] Unsupported environment command: "
+                  << cmd << std::endl;
         return false;
     }
 }
