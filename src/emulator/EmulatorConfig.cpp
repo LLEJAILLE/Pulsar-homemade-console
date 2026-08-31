@@ -1,5 +1,7 @@
 #include "EmulatorConfig.h"
 
+#include "LibretroBackend/LibretroEnvironment.h"
+
 void EmulatorConfig::applyOptimizationProfile(OptimizationProfile profile)
 {
     QMap<QString, QString> config;
@@ -16,7 +18,7 @@ void EmulatorConfig::applyOptimizationProfile(OptimizationProfile profile)
             break;
     }
     
-    Q_UNUSED(config)
+    LibretroEnvironment::setCoreOptions(config);
 }
 
 void EmulatorConfig::applyRaspberryPiOptimization()
@@ -30,11 +32,26 @@ QMap<QString, QString> EmulatorConfig::getHighPerformanceConfig()
 
     config["melonds_jit_enable"] = "enabled";
     config["melonds_jit_block_size"] = "32";
+    config["melonds_jit_branch_optimisations"] = "enabled";
+    config["melonds_jit_literal_optimisations"] = "enabled";
+    config["melonds_jit_fast_memory"] = "enabled";
     
     config["melonds_render_mode"] = "software";
     config["melonds_threaded_renderer"] = "enabled";
     config["melonds_audio_interpolation"] = "disabled";
-    config["melonds_audio_bitdepth"] = "automatic";
+    config["melonds_audio_bitdepth"] = "auto";
+
+    config["melonds_network_mode"] = "disabled";
+    config["melonds_dsi_sdcard"] = "disabled";
+    config["melonds_homebrew_sdcard"] = "disabled";
+    config["melonds_show_cursor"] = "disabled";
+    config["melonds_show_unsupported_features"] = "disabled";
+    config["melonds_show_bios_warnings"] = "disabled";
+    config["melonds_show_current_layout"] = "disabled";
+    config["melonds_show_mic_state"] = "disabled";
+    config["melonds_show_camera_state"] = "disabled";
+    config["melonds_show_lid_state"] = "disabled";
+    config["melonds_show_sensor_reading"] = "disabled";
 
     return config;
 }

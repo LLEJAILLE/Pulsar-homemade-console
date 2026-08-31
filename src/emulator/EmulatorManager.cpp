@@ -1,5 +1,6 @@
 #include "EmulatorManager.h"
 #include "CoreRegistry.h"
+#include "EmulatorConfig.h"
 #include "LibretroBackend/LibretroEnvironment.h"
 
 #include <QFile>
@@ -27,7 +28,10 @@ bool EmulatorManager::initialize(ConsoleType console)
     if (!m_core.load(core->libraryPath))
         return false;
 
-    LibretroEnvironment::setCoreOptions({});
+    if (console == ConsoleType::NDS)
+        EmulatorConfig::applyRaspberryPiOptimization();
+    else
+        LibretroEnvironment::setCoreOptions({});
 
     return m_core.initialize();
 }
