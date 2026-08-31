@@ -55,23 +55,23 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
         if (it == m_optionCache.end()) {
             var->value = nullptr;
 
-            std::cerr << "GET_VARIABLE: "
+            std::cout << "GET_VARIABLE: "
                     << key.toStdString()
                     << " = (NOT SET)"
                     << std::endl;
-            std::cerr.flush();
+            std::cout.flush();
 
             return true;
         }
 
         var->value = it.value().constData();
 
-        std::cerr << "GET_VARIABLE: "
+        std::cout << "GET_VARIABLE: "
                 << key.toStdString()
                 << " = "
                 << var->value
                 << std::endl;
-        std::cerr.flush();
+        std::cout.flush();
 
         return true;
     }
