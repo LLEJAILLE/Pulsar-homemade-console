@@ -14,7 +14,19 @@ CoreDescriptor makeMelonDsDescriptor()
         QStringLiteral("melonDS"),
         QDir(Paths::cores()).filePath(QStringLiteral("melondsds_libretro-win32-x86_64/melondsds_libretro.dll"))
     };
-#else
+#elif defined(Q_PROCESSOR_ARM_64)  // aarch64 (Raspberry Pi 4 64-bit)
+    return {
+        ConsoleType::NDS,
+        QStringLiteral("melonDS"),
+        QDir(Paths::cores()).filePath(QStringLiteral("melondsds_libretro-linux-aarch64/melondsds_libretro.so"))
+    };
+#elif defined(Q_PROCESSOR_ARM)  // armv7l (Raspberry Pi 32-bit)
+    return {
+        ConsoleType::NDS,
+        QStringLiteral("melonDS"),
+        QDir(Paths::cores()).filePath(QStringLiteral("melondsds_libretro-linux-armv7l/melondsds_libretro.so"))
+    };
+#else  // x86_64 (Desktop/Server Linux)
     return {
         ConsoleType::NDS,
         QStringLiteral("melonDS"),
@@ -31,7 +43,19 @@ CoreDescriptor makeMGbaDescriptor()
         QStringLiteral("mGBA"),
         QDir(Paths::cores()).filePath(QStringLiteral("mGBA_libretro-win32-x86_64/mgba_libretro.dll"))
     };
-#else
+#elif defined(Q_PROCESSOR_ARM_64)  // aarch64 (Raspberry Pi 4 64-bit)
+    return {
+        ConsoleType::GBA,
+        QStringLiteral("mGBA"),
+        QDir(Paths::cores()).filePath(QStringLiteral("mGBA_libretro-linux-aarch64/mgba_libretro.so"))
+    };
+#elif defined(Q_PROCESSOR_ARM)  // armv7l (Raspberry Pi 32-bit)
+    return {
+        ConsoleType::GBA,
+        QStringLiteral("mGBA"),
+        QDir(Paths::cores()).filePath(QStringLiteral("mGBA_libretro-linux-armv7l/mgba_libretro.so"))
+    };
+#else  // x86_64 (Desktop/Server Linux)
     return {
         ConsoleType::GBA,
         QStringLiteral("mGBA"),
