@@ -26,8 +26,6 @@ set(PROJECT_SOURCES
     src/emulator/CoreRegistry.h
     src/emulator/ConsoleProfile.cpp
     src/emulator/ConsoleProfile.h
-    src/emulator/EmulatorConfig.cpp
-    src/emulator/EmulatorConfig.h
         src/emulator/LibretroBackend/LibretroCore.cpp
         src/emulator/LibretroBackend/LibretroCore.h
         src/emulator/LibretroBackend/Libretro.h

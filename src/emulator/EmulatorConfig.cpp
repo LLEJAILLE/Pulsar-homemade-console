@@ -1,7 +1,5 @@
 #include "EmulatorConfig.h"
 
-#include "LibretroBackend/LibretroEnvironment.h"
-
 void EmulatorConfig::applyOptimizationProfile(OptimizationProfile profile)
 {
     QMap<QString, QString> config;
@@ -18,7 +16,7 @@ void EmulatorConfig::applyOptimizationProfile(OptimizationProfile profile)
             break;
     }
     
-    LibretroEnvironment::setOptions(config);
+    Q_UNUSED(config)
 }
 
 void EmulatorConfig::applyRaspberryPiOptimization()
