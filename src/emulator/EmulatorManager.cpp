@@ -28,6 +28,7 @@ bool EmulatorManager::initialize(ConsoleType console)
         return false;
 
     LibretroEnvironment::setCoreOptions({
+        {QStringLiteral("melonds_jit_enable"), QStringLiteral("disabled")},
         {QStringLiteral("melonds_jit_fast_memory"), QStringLiteral("disabled")}
     });
 
