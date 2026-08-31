@@ -1,3 +1,5 @@
+#include <QByteArray>
+#include <QMap>
 #include <QString>
 
 #include "Libretro.h"
@@ -10,4 +12,5 @@ class LibretroEnvironment
 
     private:
         static retro_pixel_format m_pixelFormat;
+        static QMap<QString, QByteArray> m_optionCache;
 };
