@@ -65,7 +65,7 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
 
         std::cout << "[libretro] SET_VARIABLES received: "
                   << optionCount << " definitions" << std::endl;
-        return true;
+        return false;
     }
 
     case RETRO_ENVIRONMENT_GET_VARIABLE:
