@@ -108,6 +108,12 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
             return false;
 
         QString key = QString::fromUtf8(var->key);
+        var->value = nullptr;
+
+        std::cout << "[libretro] GET_VARIABLE rejected: "
+                  << key.toStdString() << std::endl;
+        return false;
+
         auto it = m_optionCache.find(key);
 
         if (it == m_optionCache.end()) {
