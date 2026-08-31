@@ -7,6 +7,22 @@
 
 #include "Libretro.h"
 
+namespace
+{
+QByteArray legacyOptionDefault(const char* definition)
+{
+    const QByteArray values(definition);
+    const int separator = values.indexOf(';');
+
+    if (separator < 0)
+        return {};
+
+    const int valueStart = separator + 1;
+    const int firstValue = values.indexOf('|', valueStart);
+    return values.mid(valueStart, firstValue - valueStart).trimmed();
+}
+}
+
 retro_pixel_format LibretroEnvironment::m_pixelFormat = RETRO_PIXEL_FORMAT_XRGB8888;
 QMap<QString, QByteArray> LibretroEnvironment::m_optionCache;
 
@@ -59,13 +75,26 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
         if (variables) {
             for (const retro_variable* variable = variables; variable->key; ++variable) {
                 ++optionCount;
-                std::cout << "[libretro] SET_VARIABLES: " << variable->key << std::endl;
+                const QString key = QString::fromUtf8(variable->key);
+
+                if (!m_optionCache.contains(key) && variable->value) {
+                    const QByteArray defaultValue = legacyOptionDefault(variable->value);
+                    if (!defaultValue.isEmpty()) {
+                        m_optionCache.insert(key, defaultValue);
+                    }
+                }
+
+                const auto option = m_optionCache.constFind(key);
+                std::cout << "[libretro] SET_VARIABLES: " << variable->key
+                          << " = "
+                          << (option == m_optionCache.cend() ? "(NOT SET)" : option->constData())
+                          << std::endl;
             }
         }
 
         std::cout << "[libretro] SET_VARIABLES received: "
                   << optionCount << " definitions" << std::endl;
-        return false;
+        return true;
     }
 
     case RETRO_ENVIRONMENT_GET_VARIABLE:
