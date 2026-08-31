@@ -67,6 +67,17 @@ bool LibretroEnvironment::callback(unsigned cmd, void* data)
         return true;
     }
 
+    case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
+    {
+        static QByteArray saveDir;
+
+        QDir().mkpath(Paths::saves());
+        saveDir = QDir::toNativeSeparators(Paths::saves()).toLocal8Bit();
+        *static_cast<const char**>(data) = saveDir.constData();
+        std::cout << "[libretro] Save directory: " << saveDir.constData() << std::endl;
+        return true;
+    }
+
     case RETRO_ENVIRONMENT_SET_VARIABLES:
     {
         const auto variables = static_cast<const retro_variable*>(data);
