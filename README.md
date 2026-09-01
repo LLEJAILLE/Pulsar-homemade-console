@@ -171,6 +171,16 @@ It stores:
 
 The Qt emulator page writes into this object today. A hardware backend can write into the same API later without changing the emulator or libretro layers.
 
+### Raspberry Pi GPIO
+
+On Linux, when the `libgpiod` development library is available at CMake configuration time, Pulsar enables its GPIO input backend. Install it on Raspberry Pi OS with:
+
+```sh
+sudo apt install libgpiod-dev
+```
+
+The first physical button uses BCM GPIO 17 (physical pin 11), configured as an input with its internal pull-up enabled. Connect the other side of the normally-open button to GND (physical pin 6). A falling edge produces a press and a rising edge produces a release; it is published through `InputManager` as the existing `A` button.
+
 ### `LibretroInput`
 
 `LibretroInput` translates libretro joypad requests into the current state stored by `InputManager`.

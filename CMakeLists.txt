@@ -20,6 +20,8 @@ set(PROJECT_SOURCES
     src/utils/FrameTimingProfiler.h
     src/input/InputManager.cpp
     src/input/InputManager.h
+    src/input/GpioInput.cpp
+    src/input/GpioInput.h
     src/emulator/EmulatorManager.cpp
     src/emulator/EmulatorManager.h
     src/emulator/CoreRegistry.cpp
@@ -99,6 +101,18 @@ target_link_libraries(Pulsar PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Multimedia
 )
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(GPIOD QUIET IMPORTED_TARGET libgpiod>=2)
+    endif()
+
+    if(GPIOD_FOUND)
+        target_compile_definitions(Pulsar PRIVATE PULSAR_HAS_GPIOD=1)
+        target_link_libraries(Pulsar PRIVATE PkgConfig::GPIOD)
+    endif()
+endif()
 
 file(COPY "${PULSAR_ASSETS_SOURCE_DIR}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 file(COPY "${PULSAR_CORE_SOURCE_DIR}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src")

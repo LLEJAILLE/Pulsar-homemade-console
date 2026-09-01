@@ -6,6 +6,7 @@
 #include <filesystem>
 
 #include "library/LibraryManager.h"
+#include "input/GpioInput.h"
 #include "utils/Paths.h"
 
 #include "ui/ConsoleWindow.h"
@@ -13,6 +14,9 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    GpioInput gpioInput;
+    gpioInput.start();
 
     LibraryManager libraryManager;
     const QByteArray libraryPathUtf8 = Paths::library().toUtf8();
